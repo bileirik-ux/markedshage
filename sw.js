@@ -1,11 +1,13 @@
-const CACHE = 'markedshage-v1';
+const CACHE = 'markedshage-v2';
 const ASSETS = [
-  '/markedshage.html',
-  '/manifest.json',
+  '/markedshage/',
+  '/markedshage/index.html',
+  '/markedshage/manifest.json',
+  '/markedshage/icon-192.png',
+  '/markedshage/icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
 ];
 
-// Install: cache core assets
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(ASSETS))
@@ -13,7 +15,6 @@ self.addEventListener('install', e => {
   self.skipWaiting();
 });
 
-// Activate: clean old caches
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -23,22 +24,19 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// Fetch: serve from cache, fall back to network
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(resp => {
-        // Cache successful GET responses
         if (e.request.method === 'GET' && resp.status === 200) {
           const clone = resp.clone();
           caches.open(CACHE).then(cache => cache.put(e.request, clone));
         }
         return resp;
       }).catch(() => {
-        // Offline fallback for navigation
         if (e.request.mode === 'navigate') {
-          return caches.match('/markedshage.html');
+          return caches.match('/markedshage/index.html');
         }
       });
     })
