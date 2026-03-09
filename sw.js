@@ -1,10 +1,12 @@
-const CACHE = 'markedshage-v2';
+const CACHE = 'markedshage-v3';
 const ASSETS = [
   '/markedshage/',
   '/markedshage/index.html',
   '/markedshage/manifest.json',
   '/markedshage/icon-192.png',
   '/markedshage/icon-512.png',
+  '/markedshage/favicon.svg',
+  '/markedshage/favicon-32.png',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
 ];
 
