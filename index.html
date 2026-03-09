@@ -801,7 +801,13 @@ function renderSenger() {
               ).join('');
               return `<div class="${cls}" onclick="selectBed('${bed}')">
                 <div><span class="bed-label">Seng ${bed}</span></div>
-                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:1px;margin-top:4px">${namesHtml}</div>
+                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:1px;margin-top:4px;max-width:100%">${
+                  uniqueNames.map((n, i) => {
+                    const isLast = i === uniqueNames.length - 1;
+                    const lineBreak = (i % 2 === 1 && !isLast) ? '<div style="width:100%;height:0"></div>' : '';
+                    return `<span style="font-size:13px;color:#d1fae5;white-space:nowrap">${n}</span>${!isLast ? '<span style="color:#6b7280;font-size:12px;margin:0 3px">·</span>' : ''}${lineBreak}`;
+                  }).join('')
+                }</div>
                 <div style="font-size:9px;color:#6b7280;margin-top:4px">${sz.length}m × ${sz.width}m</div>
               </div>`;
             } else {
@@ -1180,11 +1186,17 @@ function selectTodayInCal(btnId, valId) {
   selectDate(val, btnId, valId);
 }
 
+let _onDatePicked = null; // optional callback(val) after date is picked
+
 function setDateField(btnId, valId, val) {
-  document.getElementById(valId).value = val || '';
+  const hiddenEl = document.getElementById(valId);
+  if (hiddenEl) { hiddenEl.value = val || ''; }
   const btn = document.getElementById(btnId);
-  if (val) { btn.textContent = val + ' 📅'; btn.classList.remove('empty'); }
-  else { btn.textContent = 'Velg dato 📅'; btn.classList.add('empty'); }
+  if (btn) {
+    if (val) { btn.textContent = val + ' 📅'; btn.classList.remove('empty'); }
+    else { btn.textContent = 'Velg dato 📅'; btn.classList.add('empty'); }
+  }
+  if (_onDatePicked) { const cb = _onDatePicked; _onDatePicked = null; cb(val); }
 }
 
 // Close calendar on outside click
@@ -1580,40 +1592,33 @@ function startEditTaskText(id, el) {
 }
 
 function startEditTaskDate(id) {
-  const t = tasks.find(t => t.id===id);
+  const t = tasks.find(t => t.id === id);
   if (!t) return;
-  // Reuse existing calendar picker via a temp hidden input approach
-  const tempBtnId = 'task-date-edit-btn-'+id;
-  const tempValId = 'task-date-edit-val-'+id;
 
-  // Create temp elements off-screen
-  let btn = document.getElementById(tempBtnId);
-  let val = document.getElementById(tempValId);
+  // Create or reuse off-screen anchor elements for the calendar
+  let btn = document.getElementById('_task-cal-btn');
+  let val = document.getElementById('_task-cal-val');
   if (!btn) {
-    btn = document.createElement('button'); btn.id = tempBtnId; btn.style.cssText = 'position:fixed;left:-9999px';
-    val = document.createElement('input'); val.id = tempValId; val.type='hidden'; val.value = t.date||'';
-    document.body.appendChild(btn); document.body.appendChild(val);
-  } else {
-    val.value = t.date||'';
+    btn = document.createElement('button');
+    btn.id = '_task-cal-btn';
+    btn.style.cssText = 'position:fixed;top:50%;left:50%;opacity:0;pointer-events:none';
+    val = document.createElement('input');
+    val.id = '_task-cal-val';
+    val.type = 'hidden';
+    document.body.appendChild(btn);
+    document.body.appendChild(val);
   }
+  val.value = t.date || '';
 
-  // Patch setDateField callback to save when done
-  const origSetDate = window._taskDateCallback;
-  window._taskDateEditId = id;
-  openCal(tempBtnId, tempValId);
-
-  // Poll for calendar close
-  const poll = setInterval(() => {
-    if (!document.getElementById('cal-popup')) {
-      clearInterval(poll);
-      const newDate = document.getElementById(tempValId)?.value || '';
-      if (newDate !== (t.date||'')) {
-        snapshot();
-        tasks = tasks.map(t2 => t2.id===id ? {...t2, date:newDate} : t2);
-      }
-      renderOppgaver();
+  _onDatePicked = (newDate) => {
+    if (newDate !== (t.date || '')) {
+      snapshot();
+      tasks = tasks.map(t2 => t2.id === id ? {...t2, date: newDate} : t2);
     }
-  }, 200);
+    renderOppgaver();
+  };
+
+  openCal('_task-cal-btn', '_task-cal-val');
 }
 
 function cycleTaskPriority(id) {
@@ -1675,21 +1680,24 @@ function getISOWeek(d) {
 
 function getCalEvents() {
   const map = {};
-  const add = (dateStr, label, emoji, color) => {
+  const add = (dateStr, label, emoji, color, extra) => {
     const d = parseToDate(dateStr);
     if (!d) return;
     const k = toDateKey(d);
     if (!map[k]) map[k] = [];
-    map[k].push({ label, emoji, color });
+    map[k].push({ label, emoji, color, ...extra });
   };
   crops.forEach(c => {
     if (c.sownDate && !c.sowLog) add(c.sownDate, 'Sådato: '+c.name, c.emoji, '#60a5fa');
     if (c.plantedDate && !c.plantLog) {
-      // Include segment info if any bed has a segment spec
       const segSpecs = c.beds.filter(s => parseBedSpec(s).start !== null);
       const segLabel = segSpecs.length > 0 ? ` (${segSpecs.join(', ')})` : '';
       add(c.plantedDate, 'Plantedato: '+c.name+segLabel, c.emoji, '#34d399');
     }
+  });
+  const pColors = {høy:'#f87171', middels:'#fbbf24', lav:'#6ee7b7'};
+  tasks.filter(t => t.date && !t.done).forEach(t => {
+    add(t.date, t.text, '📋', pColors[t.priority] || '#fbbf24', { taskId: t.id, priority: t.priority });
   });
 
   return map;
@@ -1772,6 +1780,15 @@ function renderKalender() {
           : cropId && isPlant
           ? '<button onclick="startModus(\'plant\','+cropId+')" style="padding:4px 10px;border-radius:20px;border:1px solid rgba(52,211,153,0.4);background:rgba(52,211,153,0.1);color:#6ee7b7;cursor:pointer;font-size:11px;font-family:inherit;flex-shrink:0">Plant nå</button>'
           : '';
+        if (e.taskId !== undefined) {
+          // Task event
+          const tid = typeof e.taskId === 'string' ? `'${e.taskId}'` : e.taskId;
+          return '<div class="list-row" style="padding:6px 0">'
+            +'<button class="check-btn" onclick="toggleTask('+tid+');renderKalender()" style="flex-shrink:0"></button>'
+            +'<div style="flex:1"><div style="font-size:13px;color:#d1fae5">'+e.label+'</div></div>'
+            +'<div style="width:8px;height:8px;border-radius:50%;background:'+e.color+';flex-shrink:0"></div>'
+            +'</div>';
+        }
         return '<div class="list-row" style="padding:6px 0">'
           +'<span style="font-size:16px">'+e.emoji+'</span>'
           +'<div style="flex:1"><div style="font-size:13px;color:#d1fae5">'+e.label+'</div></div>'
@@ -1799,7 +1816,9 @@ function renderKalender() {
     +'<div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap">'
     +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#60a5fa"></div>Sådato</div>'
     +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#34d399"></div>Plantedato</div>'
-    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#fbbf24"></div>Oppgave</div>'
+    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#f87171"></div>Høy</div>'
+    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#fbbf24"></div>Middels</div>'
+    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#6ee7b7"></div>Lav</div>'
     +'</div>'
     +ukeliste;
 }
