@@ -2650,61 +2650,6 @@ function parseTasksFromSheet(wsO) {
 async function gistSave() {
   if (!gistToken) return;
 
-  // Fetch remote state and merge before saving
-  if (gistId) {
-    const remote = await gistFetchRaw();
-    if (remote) {
-      let changed = false;
-
-      // Merge tasks: add remote tasks not found locally (match by text+date)
-      const remoteTasks = parseTasksFromSheet(remote.wb.Sheets['Oppgaver']);
-      const localTaskKeys = new Set(tasks.filter(t => !String(t.id).startsWith('crop-')).map(t => t.text + '|' + (t.date||'')));
-      const tasksToAdd = remoteTasks.filter(t => !localTaskKeys.has(t.text + '|' + (t.date||'')));
-      if (tasksToAdd.length > 0) {
-        tasksToAdd.forEach(t => { t.id = Date.now() + Math.random(); });
-        tasks = [...tasks, ...tasksToAdd];
-        changed = true;
-      }
-
-      // Merge crops: add remote crops not found locally (match by name+family)
-      const wsV = remote.wb.Sheets['Vekster'];
-      if (wsV) {
-        const rows = XLSX.utils.sheet_to_json(wsV, { header: 1 });
-        const localCropKeys = new Set(crops.map(c => c.name + '|' + c.family));
-        for (let i = 1; i < rows.length; i++) {
-          const r = rows[i];
-          if (!r[0]) continue;
-          const key = String(r[0]) + '|' + String(r[2] || '');
-          if (!localCropKeys.has(key)) {
-            crops = [...crops, {
-              id:           Date.now() + Math.random(),
-              name:         String(r[0] || ''),
-              emoji:        String(r[1] || '🌱'),
-              family:       String(r[2] || ''),
-              status:       parseStatus(String(r[3] || '')),
-              beds:         String(r[4] || '').split(',').map(s => s.trim()).filter(Boolean),
-              rowSpacing:   parseFloat(r[5]) || 30,
-              plantSpacing: parseFloat(r[6]) || 20,
-              rows:         parseInt(r[7])   || 2,
-              seedsPerCluster: parseInt(r[8]) || 1,
-              pricePerKg:   parseFloat(r[11]) || 0,
-              weightG:      parseFloat(r[12]) || 0,
-              sownDate:     parseImportDate(r[13]),
-              sowLog:       parseImportDate(r[14]),
-              plantedDate:  parseImportDate(r[15]),
-              plantLog:     parseImportDate(r[16]),
-              notes:        String(r[17] || ''),
-            }];
-            localCropKeys.add(key);
-            changed = true;
-          }
-        }
-      }
-
-      if (changed) render();
-    }
-  }
-
   const wb = buildWorkbook();
   const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   let binary = '';
@@ -2712,11 +2657,7 @@ async function gistSave() {
   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
   const b64 = btoa(binary);
   const content = JSON.stringify({ xlsx: b64, saved: new Date().toISOString() });
-  const body = {
-    description: 'Markedshage data',
-    public: false,
-    files: { [GIST_FILENAME]: { content } }
-  };
+  const body = { description: 'Markedshage data', public: false, files: { [GIST_FILENAME]: { content } } };
   try {
     let resp;
     if (gistId) {
@@ -2736,11 +2677,11 @@ async function gistSave() {
       try { localStorage.setItem('mh_gist_id', gistId); } catch(e) {}
     }
     if (resp.ok) {
-      showSyncToast('☁ Lagret til GitHub');
+      showSyncToast('\u2601 Lagret til GitHub');
       gistSaveTimer = null;
       const btn = document.getElementById('gist-btn');
       if (btn) { btn.style.color = '#34d399'; btn.title = 'GitHub Gist synkronisering'; }
-    } else showSyncToast('⚠ Lagring feilet');
+    } else showSyncToast('\u26a0 Lagring feilet');
   } catch(e) {
     console.warn('Gist save error:', e);
   }
