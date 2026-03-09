@@ -35,8 +35,8 @@
 
   /* BOTTOM NAV */
   #bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-    background: rgba(13,26,14,0.96);
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(13,26,14,0.98);
     backdrop-filter: blur(12px);
     border-top: 1px solid rgba(52,211,153,0.15);
     display: flex;
@@ -200,15 +200,10 @@
         <h1>🌱 Hageplanlegger</h1>
       </div>
       <div style="display:flex;gap:6px;align-items:center;position:relative">
-        <div id="search-overlay" style="display:none;position:absolute;right:0;top:50%;transform:translateY(-50%);background:#1a2e1a;border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:4px 10px 4px 14px;display:none;align-items:center;gap:6px;z-index:300;min-width:220px">
-          <input id="search-input" type="text" placeholder="Søk etter vekst…" oninput="onSearchInput()" onkeydown="onSearchKey(event)" style="background:transparent;border:none;outline:none;color:#d1fae5;font-size:13px;font-family:inherit;width:100%;caret-color:#34d399" autocomplete="off">
-          <button onclick="closeSearch()" style="background:transparent;border:none;color:#6b7280;cursor:pointer;font-size:14px;padding:2px 4px;line-height:1;flex-shrink:0">✕</button>
-        </div>
         <button id="undo-btn" onclick="undo()" title="Angre (Ctrl+Z)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↩</button>
         <button id="redo-btn" onclick="redo()" title="Gjør om (Ctrl+Y)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↪</button>
         <button onclick="saveToLibrary()" id="save-btn" title="Lagre til bibliotek" class="fs-only" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">💾</button>
         <button onclick="gistConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="GitHub Gist synkronisering" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">☁</button>
-        <button onclick="toggleSearch()" id="search-btn" title="Søk (S)" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">⌕</button>
         <button onclick="toggleGearMenu()" id="gear-btn" title="Innstillinger" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">⚙</button>
         <div id="gear-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:190px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
           <button onclick="openLibrary();closeGearMenu()" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#60a5fa;font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'" id="library-btn">📂 Bibliotek</button>
@@ -494,7 +489,6 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowUp')    { e.preventDefault(); kalenderMoveDay(-7); }
     if (e.key === 'ArrowDown')  { e.preventDefault(); kalenderMoveDay(7);  }
   }
-  if (e.key === 's' || e.key === 'S') { e.preventDefault(); toggleSearch(); }
 });
 
 function toggleGearMenu() {
@@ -505,11 +499,6 @@ function closeGearMenu() {
   document.getElementById('gear-menu').style.display = 'none';
 }
 document.addEventListener('click', e => {
-  const overlay = document.getElementById('search-overlay');
-  const searchBtn = document.getElementById('search-btn');
-  if (overlay && overlay.style.display === 'flex' && !overlay.contains(e.target) && e.target !== searchBtn) {
-    closeSearch();
-  }
   const gearBtn = document.getElementById('gear-btn');
   const menu = document.getElementById('gear-menu');
   if (menu && gearBtn && !gearBtn.contains(e.target) && !menu.contains(e.target)) {
@@ -989,13 +978,20 @@ function renderVekster() {
 
   document.getElementById('tab-vekster').innerHTML = `
     <button class="add-btn" onclick="openAddCrop()">+ Legg til vekst</button>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-      <div class="filter-bar" style="margin-bottom:0;flex:1">
-        ${filters.map(f => `<button class="filter-btn ${cropFilter===f?'active':''}" onclick="setCropFilter('${f}')">${f==='alle'?'Alle':STATUS[f].label}</button>`).join('')}
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="filter-bar" style="margin-bottom:0;flex:0 0 auto">
+        ${filters.map(f => `<button class="filter-btn ${cropFilter===f?'active':''}" onclick="setCropFilter('${f}')" style="padding:4px 8px;font-size:10px">${f==='alle'?'Alle':STATUS[f].label}</button>`).join('')}
+      </div>
+      <div style="flex:1;display:flex;justify-content:center">
+        <div style="display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:4px 10px;gap:6px">
+          <span style="color:#4b5563;font-size:12px">⌕</span>
+          <input id="search-input" type="text" placeholder="Søk…" value="${cropSearch}" oninput="onSearchInput()" onkeydown="onSearchKey(event)" style="background:transparent;border:none;outline:none;color:#d1fae5;font-size:11px;font-family:inherit;width:70px;caret-color:#34d399" autocomplete="off">
+          ${cropSearch ? `<button onclick="clearSearch()" style="background:transparent;border:none;color:#6b7280;cursor:pointer;font-size:12px;padding:0;line-height:1">✕</button>` : ''}
+        </div>
       </div>
       <div style="display:flex;flex-shrink:0;border-radius:20px;border:1px solid rgba(255,255,255,0.15);overflow:hidden">
-        <button onclick="toggleSortDir()" style="padding:5px 8px;background:rgba(255,255,255,0.04);color:#9ca3af;cursor:pointer;font-size:11px;font-family:inherit;border:none;border-right:1px solid rgba(255,255,255,0.15)">${dirSymbol}</button>
-        <button onclick="toggleSortMenu(event)" id="sort-btn" style="padding:5px 10px;background:rgba(255,255,255,0.04);color:#9ca3af;cursor:pointer;font-size:11px;font-family:inherit;border:none;white-space:nowrap">${currentSortLabel}</button>
+        <button onclick="toggleSortDir()" style="padding:4px 7px;background:rgba(255,255,255,0.04);color:#9ca3af;cursor:pointer;font-size:11px;font-family:inherit;border:none;border-right:1px solid rgba(255,255,255,0.15)">${dirSymbol}</button>
+        <button onclick="toggleSortMenu(event)" id="sort-btn" style="padding:4px 8px;background:rgba(255,255,255,0.04);color:#9ca3af;cursor:pointer;font-size:10px;font-family:inherit;border:none;white-space:nowrap">${currentSortLabel}</button>
       </div>
     </div>
     ${sortedFiltered.map(c => {
@@ -1191,6 +1187,25 @@ document.addEventListener('click', e => {
 function setCropFilter(f) { cropFilter = f; renderVekster(); }
 function setCropStatus(id, status) { snapshot(); crops = crops.map(c => c.id===id ? {...c, status} : c); renderVekster(); }
 
+function clearSearch() {
+  cropSearch = '';
+  renderVekster();
+}
+
+function onSearchInput() {
+  cropSearch = document.getElementById('search-input')?.value || '';
+  renderVekster();
+  // Keep focus on input after re-render
+  setTimeout(() => {
+    const inp = document.getElementById('search-input');
+    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  }, 0);
+}
+
+function onSearchKey(e) {
+  if (e.key === 'Escape') { clearSearch(); }
+}
+
 function toggleSortDir() {
   cropSortDir = cropSortDir === 'asc' ? 'desc' : 'asc';
   try { localStorage.setItem('mh_sort_dir', cropSortDir); } catch(e) {}
@@ -1248,34 +1263,6 @@ function setSortField(field) {
   renderVekster();
 }
 
-function toggleSearch() {
-  const overlay = document.getElementById('search-overlay');
-  const isOpen = overlay.style.display === 'flex';
-  if (isOpen) { closeSearch(); return; }
-  overlay.style.display = 'flex';
-  document.getElementById('search-btn').style.color = '#34d399';
-  // Navigate to vekster tab if not already there
-  if (currentTab !== 'vekster') showTab('vekster');
-  setTimeout(() => document.getElementById('search-input').focus(), 30);
-}
-
-function closeSearch() {
-  document.getElementById('search-overlay').style.display = 'none';
-  document.getElementById('search-btn').style.color = '';
-  document.getElementById('search-input').value = '';
-  cropSearch = '';
-  renderVekster();
-}
-
-function onSearchInput() {
-  cropSearch = document.getElementById('search-input').value;
-  if (currentTab !== 'vekster') showTab('vekster');
-  renderVekster();
-}
-
-function onSearchKey(e) {
-  if (e.key === 'Escape') closeSearch();
-}
 function deleteCrop() {
   if (editingCropId === null) return;
   const c = crops.find(x => x.id === editingCropId);
@@ -2671,11 +2658,18 @@ function gistShowMenu() {
   const items = [
     { label: '⬇ Last inn fra GitHub', fn: () => { gistImport(); menu.remove(); } },
     { label: '⬆ Lagre til GitHub',    fn: () => { gistSave();   menu.remove(); } },
+    { label: '─────────────────', fn: null },
     { label: '🔑 Endre token',         fn: () => { gistSetup();  menu.remove(); } },
     { label: '🔓 Koble fra',           fn: () => { gistDisconnect(); menu.remove(); }, color: '#f87171' },
   ];
 
   items.forEach(item => {
+    if (!item.fn) {
+      const div = document.createElement('div');
+      div.style.cssText = 'height:1px;background:rgba(255,255,255,0.08);margin:4px 0';
+      menu.appendChild(div);
+      return;
+    }
     const btn = document.createElement('button');
     btn.textContent = item.label;
     btn.style.cssText = `display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;color:${item.color||'#60a5fa'};cursor:pointer;font-size:13px;font-family:inherit;text-align:left`;
@@ -2684,6 +2678,16 @@ function gistShowMenu() {
     btn.onclick = item.fn;
     menu.appendChild(btn);
   });
+
+  // Hidden file input for Excel import
+  let fileInput = document.getElementById('gist-excel-import');
+  if (!fileInput) {
+    fileInput = document.createElement('input');
+    fileInput.type = 'file'; fileInput.accept = '.xlsx'; fileInput.id = 'gist-excel-import';
+    fileInput.style.display = 'none';
+    fileInput.onchange = (e) => importFromExcel(e);
+    document.body.appendChild(fileInput);
+  }
 
   document.body.appendChild(menu);
   const gistBtn = document.getElementById('gist-btn');
