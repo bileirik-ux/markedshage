@@ -15,7 +15,8 @@
   html, body { height: 100%; }
   body {
     min-height: 100vh;
-    background: linear-gradient(135deg, #0d1a0e 0%, #1a2e1b 40%, #0d1a0e 100%);
+    background: linear-gradient(135deg, #0d1a0e 0%, #1a2e1b 40%, #0d1a0e 100%) fixed;
+    background-size: 100% 100%;
     font-family: Georgia, 'Times New Roman', serif;
     color: #e8f5e9;
     overflow-x: hidden;
@@ -101,7 +102,7 @@
     border-radius: 12px; padding: 16px;
   }
 
-  .fs-only { display: none !important; }
+  /* end removed */
   .crop-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
   .crop-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
   .crop-info { display: flex; gap: 10px; align-items: center; }
@@ -202,12 +203,9 @@
       <div style="display:flex;gap:6px;align-items:center;position:relative">
         <button id="undo-btn" onclick="undo()" title="Angre (Ctrl+Z)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↩</button>
         <button id="redo-btn" onclick="redo()" title="Gjør om (Ctrl+Y)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↪</button>
-        <button onclick="saveToLibrary()" id="save-btn" title="Lagre til bibliotek" class="fs-only" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">💾</button>
         <button onclick="gistConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="GitHub Gist synkronisering" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">☁</button>
         <button onclick="toggleGearMenu()" id="gear-btn" title="Innstillinger" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">⚙</button>
         <div id="gear-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:190px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
-          <button onclick="openLibrary();closeGearMenu()" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#60a5fa;font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'" id="library-btn">📂 Bibliotek</button>
-          <div style="height:1px;background:rgba(255,255,255,0.08);margin:4px 0"></div>
           <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:#60a5fa;font-family:inherit" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">⬆ Importer fra Excel<input type="file" accept=".xlsx" onchange="importFromExcel(event);closeGearMenu()" style="display:none"></label>
           <button onclick="exportToExcel();closeGearMenu()" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#6ee7b7;font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">⬇ Eksporter til Excel</button>
           <div style="height:1px;background:rgba(255,255,255,0.08);margin:4px 0"></div>
@@ -414,20 +412,7 @@ const MAX_HISTORY = 50;
 let history = [];   // array of snapshots {crops, tasks, bedSizes, BED_IDS}
 let historyIndex = -1;
 
-let _autosaveTimer = null;
-
-function scheduleAutosave() {
-  if (!libraryFileName || !FS_SUPPORTED) return;
-  clearTimeout(_autosaveTimer);
-  const btn = document.getElementById('save-btn');
-  if (btn) { btn.textContent = '💾'; btn.style.color = ''; btn.style.opacity = '1'; btn.style.pointerEvents = ''; }
-  _autosaveTimer = setTimeout(async () => {
-    await saveToLibrary();
-  }, 3000);
-}
-
 function snapshot() {
-  // Trim any redo states ahead
   history = history.slice(0, historyIndex + 1);
   history.push({
     crops:    JSON.parse(JSON.stringify(crops)),
@@ -438,7 +423,6 @@ function snapshot() {
   if (history.length > MAX_HISTORY) history.shift();
   historyIndex = history.length - 1;
   updateUndoRedoBtns();
-  scheduleAutosave();
   scheduleGistSave();
 }
 
@@ -2347,158 +2331,6 @@ function styleHeaderRow(ws, numCols) {
 }
 
 /* ── BIBLIOTEK (File System Access API + fallback) ─────────────── */
-let libraryFileHandle = null;  // FileSystemFileHandle, if supported
-let libraryFileName   = null;  // fallback: just the filename for download
-
-const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-const FS_SUPPORTED = !IS_MOBILE &&
-  typeof window !== 'undefined' &&
-  'showOpenFilePicker' in window &&
-  'createWritable' in (window.FileSystemFileHandle?.prototype ?? {});
-
-function setLibraryActive(filename) {
-  libraryFileName = filename;
-  const libBtn = document.getElementById('library-btn');
-  if (libBtn) {
-    libBtn.textContent = '📂 ' + filename;
-    libBtn.title = 'Bytt bibliotekfil (' + filename + ')';
-  }
-  // Save button only on devices with File System Access API
-  const saveBtn = document.getElementById('save-btn');
-  if (saveBtn && FS_SUPPORTED) { saveBtn.classList.remove('fs-only'); saveBtn.style.display = 'flex'; }
-  try { localStorage.setItem('mh_library_name', filename); } catch(e) {}
-}
-
-async function openLibrary() {
-  if (FS_SUPPORTED) {
-    try {
-      const [handle] = await window.showOpenFilePicker({
-        types: [{ description: 'Excel-fil', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }],
-        multiple: false
-      });
-      libraryFileHandle = handle;
-      setLibraryActive(handle.name);
-      await saveHandleToDB(handle);
-      const file = await handle.getFile();
-      await importFileObject(file);
-    } catch(e) {
-      if (e.name !== 'AbortError') alert('Kunne ikke åpne fil: ' + e.message);
-    }
-  } else {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.xlsx';
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      libraryFileHandle = null;
-      setLibraryActive(file.name);
-      await importFileObject(file);
-    };
-    input.click();
-  }
-}
-
-async function saveToLibrary() {
-  if (!libraryFileName || !FS_SUPPORTED || !libraryFileHandle) return;
-  const wb = buildWorkbook();
-  const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-  const blob = new Blob([wbArray], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  try {
-    const perm = await libraryFileHandle.requestPermission({ mode: 'readwrite' });
-    if (perm !== 'granted') throw new Error('Ingen skrivetillatelse');
-    const writable = await libraryFileHandle.createWritable();
-    await writable.write(blob);
-    await writable.close();
-    const btn = document.getElementById('save-btn');
-    if (btn) { btn.textContent = '✓'; btn.style.color = '#34d399'; btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; }
-  } catch(e) {
-    console.warn('Lagring feilet:', e);
-  }
-}
-
-/* ── IndexedDB: persist file handle across reloads ── */
-function openHandleDB() {
-  return new Promise((res, rej) => {
-    const req = indexedDB.open('mh_library', 1);
-    req.onupgradeneeded = e => e.target.result.createObjectStore('handles');
-    req.onsuccess = e => res(e.target.result);
-    req.onerror   = e => rej(e);
-  });
-}
-async function saveHandleToDB(handle) {
-  try {
-    const db = await openHandleDB();
-    const tx = db.transaction('handles', 'readwrite');
-    tx.objectStore('handles').put(handle, 'library');
-  } catch(e) { console.warn('Could not save handle to DB', e); }
-}
-async function loadHandleFromDB() {
-  try {
-    const db = await openHandleDB();
-    return await new Promise((res, rej) => {
-      const tx = db.transaction('handles', 'readonly');
-      const req = tx.objectStore('handles').get('library');
-      req.onsuccess = e => res(e.target.result || null);
-      req.onerror   = e => rej(e);
-    });
-  } catch(e) { return null; }
-}
-
-
-// On load: restore handle from IndexedDB and auto-import
-async function restoreLibraryOnLoad() {
-  if (!FS_SUPPORTED) {
-    try {
-      const saved = localStorage.getItem('mh_library_name');
-      if (saved) setLibraryActive(saved);
-    } catch(e) {}
-    return;
-  }
-  const handle = await loadHandleFromDB();
-  if (!handle) return;
-  try {
-    // Check if we still have read permission (may be granted without gesture)
-    const perm = await handle.queryPermission({ mode: 'readwrite' });
-    if (perm === 'granted') {
-      libraryFileHandle = handle;
-      setLibraryActive(handle.name);
-      const file = await handle.getFile();
-      await importFileObject(file);
-      return;
-    }
-    // Permission not auto-granted — show a banner prompting the user to click
-    libraryFileName = handle.name;
-    setLibraryActive(handle.name);
-    showLibraryReloadBanner(handle);
-  } catch(e) {
-    console.warn('Could not restore library handle', e);
-  }
-}
-
-function showLibraryReloadBanner(handle) {
-  const banner = document.createElement('div');
-  banner.id = 'library-banner';
-  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#1e3a2e;border-bottom:1px solid rgba(96,165,250,0.3);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:9999;font-family:inherit';
-  banner.innerHTML = `<span style="font-size:13px;color:#93c5fd">📂 Bibliotek: <strong>${handle.name}</strong> — klikk for å laste inn på nytt</span>
-    <button onclick="reloadLibraryFromBanner()" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.1);color:#60a5fa;cursor:pointer;font-size:12px;font-family:inherit">Last inn</button>`;
-  document.body.prepend(banner);
-  window._pendingLibraryHandle = handle;
-}
-
-async function reloadLibraryFromBanner() {
-  const handle = window._pendingLibraryHandle;
-  if (!handle) return;
-  try {
-    const perm = await handle.requestPermission({ mode: 'readwrite' });
-    if (perm !== 'granted') return;
-    libraryFileHandle = handle;
-    const file = await handle.getFile();
-    await importFileObject(file);
-    document.getElementById('library-banner')?.remove();
-  } catch(e) { alert('Kunne ikke laste inn: ' + e.message); }
-}
-
 /* ═══════════════════════════════════════════════════════
    GITHUB GIST SYNC
    ═══════════════════════════════════════════════════════ */
@@ -2720,7 +2552,6 @@ function showSyncToast(msg) {
 // Init
 snapshot();
 render();
-restoreLibraryOnLoad();
 initGist();
 
 // Register service worker for PWA
