@@ -436,7 +436,7 @@ const MAX_HISTORY = 50;
 let history = [];   // array of snapshots {crops, tasks, bedSizes, BED_IDS}
 let historyIndex = -1;
 
-function snapshot() {
+function snapshot(skipGistSave = false) {
   history = history.slice(0, historyIndex + 1);
   history.push({
     crops:    JSON.parse(JSON.stringify(crops)),
@@ -447,7 +447,7 @@ function snapshot() {
   if (history.length > MAX_HISTORY) history.shift();
   historyIndex = history.length - 1;
   updateUndoRedoBtns();
-  scheduleGistSave();
+  if (!skipGistSave) scheduleGistSave();
 }
 
 function undo() {
@@ -2548,13 +2548,17 @@ async function gistLoadOnStart() {
   try {
     if (gistId) {
       const ok = await gistImport(true);
-      if (ok) { showSyncToast('☁ Lastet inn fra GitHub'); return; }
+      if (ok) {
+        clearTimeout(gistSaveTimer); gistSaveTimer = null;
+        showSyncToast('☁ Lastet inn fra GitHub'); return;
+      }
     }
     const found = await gistFindExisting();
     if (found) {
       gistId = found;
       try { localStorage.setItem('mh_gist_id', gistId); } catch(e) {}
       await gistImport(true);
+      clearTimeout(gistSaveTimer); gistSaveTimer = null;
       showSyncToast('☁ Lastet inn fra GitHub');
     } else {
       await gistSave();
@@ -2829,7 +2833,7 @@ function showSyncToast(msg) {
 }
 
 // Init
-snapshot();
+snapshot(true); // true = skip gist save on initial snapshot
 showTab(currentTab);
 initGist();
 
