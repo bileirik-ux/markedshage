@@ -420,7 +420,7 @@ let tasks = [
   { id:4, text:"Vanne drivhuset",             done:false, date:"05-04-2026", priority:"høy" },
 ];
 
-let currentTab = "oversikt";
+let currentTab = (() => { try { return localStorage.getItem('mh_tab') || 'oversikt'; } catch(e) { return 'oversikt'; } })();
 let selectedBed = null;
 let cropFilter = "alle";
 let cropSearch = "";
@@ -531,6 +531,7 @@ document.addEventListener('click', e => {
 
 function showTab(name) {
   currentTab = name;
+  try { localStorage.setItem('mh_tab', name); } catch(e) {}
   expandedCrops = new Set(); // reset expanded state on tab switch
   document.querySelectorAll('#bottom-nav .tab-btn').forEach((b,i) => {
     b.classList.toggle('active', ['oversikt','senger','vekster','oppgaver','kalender'][i] === name);
@@ -2601,8 +2602,105 @@ async function gistImport(silent = false) {
   }
 }
 
+async function gistFetchRaw() {
+  if (!gistToken || !gistId) return null;
+  try {
+    const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const content = data.files?.[GIST_FILENAME]?.content;
+    if (!content) return null;
+    const parsed = JSON.parse(content);
+    // Decode xlsx to get remote state
+    const b64 = parsed.xlsx;
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const wb = XLSX.read(bytes, { type: 'array', cellDates: false });
+    return { wb, saved: parsed.saved };
+  } catch(e) {
+    console.warn('gistFetchRaw error:', e);
+    return null;
+  }
+}
+
+function parseTasksFromSheet(wsO) {
+  if (!wsO) return [];
+  const rows = XLSX.utils.sheet_to_json(wsO, { header: 1 });
+  const result = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r[0]) continue;
+    result.push({
+      text:     String(r[0] || ''),
+      date:     parseImportDate(r[1]),
+      priority: parsePriority(String(r[2] || '')),
+      done:     String(r[3] || '').toLowerCase() === 'ja',
+    });
+  }
+  return result;
+}
+
 async function gistSave() {
   if (!gistToken) return;
+
+  // Fetch remote state and merge before saving
+  if (gistId) {
+    const remote = await gistFetchRaw();
+    if (remote) {
+      let changed = false;
+
+      // Merge tasks: add remote tasks not found locally (match by text+date)
+      const remoteTasks = parseTasksFromSheet(remote.wb.Sheets['Oppgaver']);
+      const localTaskKeys = new Set(tasks.filter(t => !String(t.id).startsWith('crop-')).map(t => t.text + '|' + (t.date||'')));
+      const tasksToAdd = remoteTasks.filter(t => !localTaskKeys.has(t.text + '|' + (t.date||'')));
+      if (tasksToAdd.length > 0) {
+        tasksToAdd.forEach(t => { t.id = Date.now() + Math.random(); });
+        tasks = [...tasks, ...tasksToAdd];
+        changed = true;
+      }
+
+      // Merge crops: add remote crops not found locally (match by name+family)
+      const wsV = remote.wb.Sheets['Vekster'];
+      if (wsV) {
+        const rows = XLSX.utils.sheet_to_json(wsV, { header: 1 });
+        const localCropKeys = new Set(crops.map(c => c.name + '|' + c.family));
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r[0]) continue;
+          const key = String(r[0]) + '|' + String(r[2] || '');
+          if (!localCropKeys.has(key)) {
+            crops = [...crops, {
+              id:           Date.now() + Math.random(),
+              name:         String(r[0] || ''),
+              emoji:        String(r[1] || '🌱'),
+              family:       String(r[2] || ''),
+              status:       parseStatus(String(r[3] || '')),
+              beds:         String(r[4] || '').split(',').map(s => s.trim()).filter(Boolean),
+              rowSpacing:   parseFloat(r[5]) || 30,
+              plantSpacing: parseFloat(r[6]) || 20,
+              rows:         parseInt(r[7])   || 2,
+              seedsPerCluster: parseInt(r[8]) || 1,
+              pricePerKg:   parseFloat(r[11]) || 0,
+              weightG:      parseFloat(r[12]) || 0,
+              sownDate:     parseImportDate(r[13]),
+              sowLog:       parseImportDate(r[14]),
+              plantedDate:  parseImportDate(r[15]),
+              plantLog:     parseImportDate(r[16]),
+              notes:        String(r[17] || ''),
+            }];
+            localCropKeys.add(key);
+            changed = true;
+          }
+        }
+      }
+
+      if (changed) render();
+    }
+  }
+
   const wb = buildWorkbook();
   const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   let binary = '';
@@ -2732,7 +2830,7 @@ function showSyncToast(msg) {
 
 // Init
 snapshot();
-render();
+showTab(currentTab);
 initGist();
 
 // Register service worker for PWA
