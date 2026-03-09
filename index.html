@@ -792,11 +792,11 @@ function renderSenger() {
               bedCropList.forEach(c => { nameMap[c.name] = (nameMap[c.name] || 0) + 1; });
               const uniqueNames = Object.keys(nameMap);
               const namesHtml = uniqueNames.map((n, i) =>
-                `<span style="font-size:11px;font-weight:600;color:#d1fae5;white-space:nowrap">${n}</span>${i < uniqueNames.length-1 ? '<span style="color:#4b5563;font-size:10px">·</span>' : ''}`
+                `<span style="font-size:11px;color:#d1fae5;white-space:nowrap">${n}</span>${i < uniqueNames.length-1 ? '<span style="color:#34d399;font-size:10px;margin:0 2px">/</span>' : ''}`
               ).join('');
               return `<div class="${cls}" onclick="selectBed('${bed}')">
                 <div><span class="bed-label">Seng ${bed}</span></div>
-                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:3px;margin-top:4px">${namesHtml}</div>
+                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:1px;margin-top:4px">${namesHtml}</div>
                 <div style="font-size:9px;color:#6b7280;margin-top:4px">${sz.length}m × ${sz.width}m</div>
               </div>`;
             } else {
@@ -1016,7 +1016,6 @@ function renderVekster() {
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
             ${badge(c.status)}
-            <button onclick="openEditCrop(${c.id})" style="background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.25);border-radius:8px;color:#60a5fa;cursor:pointer;padding:4px 10px;font-size:11px;font-family:inherit">✏️ Rediger</button>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 12px;background:rgba(52,211,153,0.07);border-radius:10px;border:1px solid rgba(52,211,153,0.15)">
@@ -1049,8 +1048,9 @@ function renderVekster() {
         ${c.plantLog ? `<div class="crop-notes">🪴 Plantelogg: ${c.plantLog}</div>` : ''}
         ${c.notes ? `<div class="crop-notes">📝 ${c.notes}</div>` : ''}
         ` : ''}
-        <div style="text-align:center;margin-top:8px">
-          <button onclick="toggleCropExpand(${c.id})" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:20px;color:#9ca3af;cursor:pointer;padding:8px 28px;font-size:13px;font-family:inherit">${isExpanded ? '▲ Vis mindre' : '▼ Vis mer'}</button>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button onclick="openEditCrop(${c.id})" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:20px;color:#9ca3af;cursor:pointer;padding:8px;font-size:13px;font-family:inherit">✏️ Rediger</button>
+          <button onclick="toggleCropExpand(${c.id})" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:20px;color:#9ca3af;cursor:pointer;padding:8px;font-size:13px;font-family:inherit">${isExpanded ? '▲ Vis mindre' : '▼ Vis mer'}</button>
         </div>
       </div>`;
     }).join('')}
