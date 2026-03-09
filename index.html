@@ -219,7 +219,7 @@
           <circle cx="236" cy="238" r="6" fill="#c9a84c" opacity="0.5"/>
         </svg>
         <div>
-          <div class="header-eyebrow">Markedshage</div>
+          <div class="header-eyebrow" style="font-size:9px;color:#c9a84c">Markedshage</div>
           <h1 style="font-size:16px;font-weight:600;color:#e8f5e9;letter-spacing:0.02em;margin:0">Assistenten</h1>
         </div>
       </div>
@@ -1147,10 +1147,6 @@ function calNav(dir, event) {
 }
 
 function selectDate(val, btnId, valId) {
-  const hiddenEl = document.getElementById(valId);
-  if (hiddenEl) hiddenEl.value = val;
-  const btn = document.getElementById(btnId);
-  if (btn) { btn.textContent = val + ' 📅'; btn.classList.remove('empty'); }
   const popup = document.getElementById('cal-popup');
   if (popup) popup.remove();
   // If this is a modus date picker, store and re-render
@@ -1158,26 +1154,28 @@ function selectDate(val, btnId, valId) {
     const crop = crops.find(c => c.id === modusCrops[modusIndex]);
     if (crop) modusLogDate[crop.id] = val;
     renderModus();
+    return;
   }
   if (valId === 'modus-main-val') {
     const crop = crops.find(c => c.id === modusCrops[modusIndex]);
     if (crop) modusMainDate[crop.id] = val;
     renderModus();
+    return;
   }
+  setDateField(btnId, valId, val);
 }
 
 function clearDate(btnId, valId) {
-  document.getElementById(valId).value = '';
-  const btn = document.getElementById(btnId);
-  btn.textContent = 'Velg dato 📅';
-  btn.classList.add('empty');
   const popup = document.getElementById('cal-popup');
   if (popup) popup.remove();
   if (valId === 'modus-date-val') {
+    document.getElementById(valId).value = '';
     const crop = crops.find(c => c.id === modusCrops[modusIndex]);
     if (crop) modusLogDate[crop.id] = '';
     renderModus();
+    return;
   }
+  setDateField(btnId, valId, '');
 }
 
 function selectTodayInCal(btnId, valId) {
@@ -1205,7 +1203,7 @@ document.addEventListener('click', e => {
   if (!popup) return;
   if (popup.contains(e.target)) return;
   // Don't close if clicking a button that opens the calendar
-  if (e.target.closest && e.target.closest('[onclick*="openCal"], [onclick*="openModus"]')) return;
+  if (e.target.closest && e.target.closest('[onclick*="openCal"], [onclick*="openModus"], [onclick*="startEditTaskDate"]')) return;
   popup.remove();
 });
 function setCropFilter(f) { cropFilter = f; renderVekster(); }
@@ -1548,7 +1546,7 @@ function renderOppgaver() {
               }
               ${isAuto
                 ? (t.date ? `<div class="task-date">📅 ${dateDisplay}</div>` : '')
-                : `<div class="task-date" onclick="startEditTaskDate(${tid})" style="cursor:pointer;color:${t.date?'#6b7280':'rgba(107,114,128,0.5)'}">📅 ${dateDisplay}</div>`
+                : `<div class="task-date" onclick="startEditTaskDate(${tid}, event)" style="cursor:pointer;color:${t.date?'#6b7280':'rgba(107,114,128,0.5)'}">📅 ${dateDisplay}</div>`
               }
             </div>
             ${isAuto ? '' : `
@@ -1591,17 +1589,17 @@ function startEditTaskText(id, el) {
   input.addEventListener('blur', commit);
 }
 
-function startEditTaskDate(id) {
+function startEditTaskDate(id, event) {
+  if (event) event.stopPropagation();
   const t = tasks.find(t => t.id === id);
   if (!t) return;
 
-  // Create or reuse off-screen anchor elements for the calendar
   let btn = document.getElementById('_task-cal-btn');
   let val = document.getElementById('_task-cal-val');
   if (!btn) {
     btn = document.createElement('button');
     btn.id = '_task-cal-btn';
-    btn.style.cssText = 'position:fixed;top:50%;left:50%;opacity:0;pointer-events:none';
+    btn.style.cssText = 'position:fixed;top:40%;left:50%;transform:translateX(-50%);opacity:0;pointer-events:none;width:1px;height:1px';
     val = document.createElement('input');
     val.id = '_task-cal-val';
     val.type = 'hidden';
@@ -1618,7 +1616,15 @@ function startEditTaskDate(id) {
     renderOppgaver();
   };
 
+  // Open calendar and then reposition popup to center of screen
   openCal('_task-cal-btn', '_task-cal-val');
+  const popup = document.getElementById('cal-popup');
+  if (popup) {
+    const popW = 300;
+    const popH = 290;
+    popup.style.left = Math.max(8, (window.innerWidth - popW) / 2) + 'px';
+    popup.style.top  = Math.max(8, (window.innerHeight - popH) / 2) + 'px';
+  }
 }
 
 function cycleTaskPriority(id) {
