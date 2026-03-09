@@ -2276,7 +2276,7 @@ function importFromExcel(event) {
   importFileObject(file);
 }
 
-function importFileObject(file) {
+function importFileObject(file, skipSave = false) {
   return new Promise((resolve) => {
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -2370,7 +2370,7 @@ function importFileObject(file) {
       }
 
       pendingImport = { crops: newCrops, bedSizes: newBedSizes, bedIDs: newBedIDs, tasks: newTasks };
-      confirmImport();
+      confirmImport(skipSave);
       resolve();
     } catch(err) {
       alert('Kunne ikke lese filen. Kontroller at det er en gyldig Excel-eksport fra denne appen.');
@@ -2382,9 +2382,9 @@ function importFileObject(file) {
   });
 }
 
-function confirmImport() {
+function confirmImport(skipSave = false) {
   if (!pendingImport) return;
-  snapshot();
+  snapshot(skipSave);
   crops    = pendingImport.crops;
   bedSizes = pendingImport.bedSizes;
   BED_IDS  = pendingImport.bedIDs;
@@ -2597,7 +2597,7 @@ async function gistImport(silent = false) {
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const file = new File([blob], 'markedshage.xlsx');
-    await importFileObject(file);
+    await importFileObject(file, true); // skipSave=true: don't trigger gist save after loading
     if (!silent) showSyncToast('☁ Lastet inn fra GitHub');
     return true;
   } catch(e) {
