@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<title>🌱 Markedshage Assistent</title>
+<title>Markedshage Assistenten</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -220,7 +220,7 @@
         </svg>
         <div>
           <div class="header-eyebrow">Markedshage</div>
-          <h1 style="font-size:16px;font-weight:600;color:#e8f5e9;letter-spacing:0.02em;margin:0">Assistent</h1>
+          <h1 style="font-size:16px;font-weight:600;color:#e8f5e9;letter-spacing:0.02em;margin:0">Assistenten</h1>
         </div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;position:relative">
@@ -517,6 +517,11 @@ document.addEventListener('click', e => {
   if (sortMenu && sortBtn && !sortBtn.contains(e.target) && !sortMenu.contains(e.target)) {
     sortMenu.remove();
   }
+  const filterMenu = document.getElementById('filter-menu');
+  const filterBtn = document.getElementById('filter-btn');
+  if (filterMenu && filterBtn && !filterBtn.contains(e.target) && !filterMenu.contains(e.target)) {
+    filterMenu.remove();
+  }
   const gistMenu = document.getElementById('gist-menu');
   const gistBtn  = document.getElementById('gist-btn');
   if (gistMenu && gistBtn && !gistBtn.contains(e.target) && !gistMenu.contains(e.target)) {
@@ -792,7 +797,7 @@ function renderSenger() {
               bedCropList.forEach(c => { nameMap[c.name] = (nameMap[c.name] || 0) + 1; });
               const uniqueNames = Object.keys(nameMap);
               const namesHtml = uniqueNames.map((n, i) =>
-                `<span style="font-size:11px;color:#d1fae5;white-space:nowrap">${n}</span>${i < uniqueNames.length-1 ? '<span style="color:#34d399;font-size:10px;margin:0 2px">/</span>' : ''}`
+                `<span style="font-size:13px;color:#d1fae5;white-space:nowrap">${n}</span>${i < uniqueNames.length-1 ? '<span style="color:#6b7280;font-size:12px;margin:0 3px">·</span>' : ''}`
               ).join('');
               return `<div class="${cls}" onclick="selectBed('${bed}')">
                 <div><span class="bed-label">Seng ${bed}</span></div>
@@ -986,20 +991,18 @@ function renderVekster() {
 
   document.getElementById('tab-vekster').innerHTML = `
     <button class="add-btn" onclick="openAddCrop()">+ Legg til vekst</button>
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-      <select onchange="setCropFilter(this.value)" style="padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:${cropFilter==='alle'?'#9ca3af':'#6ee7b7'};font-size:11px;font-family:inherit;cursor:pointer;outline:none;flex-shrink:0">
-        ${filters.map(f => `<option value="${f}" ${cropFilter===f?'selected':''} style="background:#1a2e1a;color:#e8f5e9">${f==='alle'?'Alle statuser':STATUS[f].label}</option>`).join('')}
-      </select>
-      <div style="flex:1;display:flex;justify-content:center">
-        <div style="display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:4px 10px;gap:6px">
-          <span style="color:#4b5563;font-size:12px">⌕</span>
-          <input id="search-input" type="text" placeholder="Søk…" value="${cropSearch}" oninput="onSearchInput()" onkeydown="onSearchKey(event)" style="background:transparent;border:none;outline:none;color:#d1fae5;font-size:11px;font-family:inherit;width:70px;caret-color:#34d399" autocomplete="off">
-          ${cropSearch ? `<button onclick="clearSearch()" style="background:transparent;border:none;color:#6b7280;cursor:pointer;font-size:12px;padding:0;line-height:1">✕</button>` : ''}
-        </div>
+    <div style="display:flex;align-items:stretch;gap:6px;margin-bottom:14px">
+      <div style="display:flex;flex-shrink:0;border-radius:20px;border:1px solid rgba(255,255,255,0.15);overflow:hidden">
+        <button onclick="toggleFilterMenu(event)" id="filter-btn" style="padding:0 10px;background:rgba(255,255,255,0.04);color:${cropFilter==='alle'?'#9ca3af':'#6ee7b7'};cursor:pointer;font-size:10px;font-family:inherit;border:none;white-space:nowrap">${cropFilter==='alle'?'Alle statuser':STATUS[cropFilter].label}</button>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:4px 10px;gap:6px">
+        <span style="color:#4b5563;font-size:12px">⌕</span>
+        <input id="search-input" type="text" placeholder="Søk…" value="${cropSearch}" oninput="onSearchInput()" onkeydown="onSearchKey(event)" style="background:transparent;border:none;outline:none;color:#d1fae5;font-size:11px;font-family:inherit;width:100%;caret-color:#34d399" autocomplete="off">
+        ${cropSearch ? `<button onclick="clearSearch()" style="background:transparent;border:none;color:#6b7280;cursor:pointer;font-size:12px;padding:0;line-height:1">✕</button>` : ''}
       </div>
       <div style="display:flex;flex-shrink:0;border-radius:20px;border:1px solid rgba(255,255,255,0.15);overflow:hidden">
-        <button onclick="toggleSortDir()" style="padding:4px 7px;background:rgba(255,255,255,0.04);color:#9ca3af;cursor:pointer;font-size:11px;font-family:inherit;border:none;border-right:1px solid rgba(255,255,255,0.15)">${dirSymbol}</button>
-        <button onclick="toggleSortMenu(event)" id="sort-btn" style="padding:4px 8px;background:rgba(255,255,255,0.04);color:#9ca3af;cursor:pointer;font-size:10px;font-family:inherit;border:none;white-space:nowrap">${currentSortLabel}</button>
+        <button onclick="toggleSortDir()" style="padding:0 7px;background:rgba(255,255,255,0.04);color:#9ca3af;cursor:pointer;font-size:11px;font-family:inherit;border:none;border-right:1px solid rgba(255,255,255,0.15)">${dirSymbol}</button>
+        <button onclick="toggleSortMenu(event)" id="sort-btn" style="padding:0 8px;background:rgba(255,255,255,0.04);color:#9ca3af;cursor:pointer;font-size:10px;font-family:inherit;border:none;white-space:nowrap">${currentSortLabel}</button>
       </div>
     </div>
     ${sortedFiltered.map(c => {
@@ -1225,6 +1228,31 @@ function toggleSortDir() {
   cropSortDir = cropSortDir === 'asc' ? 'desc' : 'asc';
   try { localStorage.setItem('mh_sort_dir', cropSortDir); } catch(e) {}
   renderVekster();
+}
+
+function toggleFilterMenu(e) {
+  e.stopPropagation();
+  let menu = document.getElementById('filter-menu');
+  if (menu) { menu.remove(); return; }
+
+  const filterOptions = [
+    { key: 'alle', label: 'Alle statuser' },
+    ...Object.entries(STATUS).map(([k, v]) => ({ key: k, label: v.label }))
+  ];
+
+  menu = document.createElement('div');
+  menu.id = 'filter-menu';
+  menu.style.cssText = 'position:fixed;background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:4px;min-width:150px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6)';
+  menu.innerHTML = filterOptions.map(f => `
+    <button onclick="setCropFilter('${f.key}');document.getElementById('filter-menu')?.remove()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:7px 10px;border-radius:8px;border:none;background:${cropFilter===f.key?'rgba(255,255,255,0.07)':'transparent'};color:${cropFilter===f.key?'#6ee7b7':'#9ca3af'};cursor:pointer;font-size:12px;font-family:inherit;text-align:left">
+      ${f.label}${cropFilter===f.key?'<span style="color:#34d399;margin-left:8px">✓</span>':''}
+    </button>`).join('');
+
+  document.body.appendChild(menu);
+  const btn = document.getElementById('filter-btn');
+  const rect = btn.getBoundingClientRect();
+  menu.style.top  = (rect.bottom + 4) + 'px';
+  menu.style.left = rect.left + 'px';
 }
 
 function toggleSortMenu(e) {
