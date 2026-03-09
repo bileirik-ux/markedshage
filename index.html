@@ -447,6 +447,7 @@ function snapshot(skipGistSave = false) {
   if (history.length > MAX_HISTORY) history.shift();
   historyIndex = history.length - 1;
   updateUndoRedoBtns();
+  saveToLocal();
   if (!skipGistSave) scheduleGistSave();
 }
 
@@ -2276,6 +2277,32 @@ function importFromExcel(event) {
   importFileObject(file);
 }
 
+function saveToLocal() {
+  try {
+    const data = {
+      crops,
+      tasks: tasks.filter(t => !String(t.id).startsWith('crop-')), // skip auto-tasks
+      bedSizes,
+      bedIDs: BED_IDS,
+    };
+    localStorage.setItem('mh_data', JSON.stringify(data));
+  } catch(e) { console.warn('localStorage save failed:', e); }
+}
+
+function loadFromLocal() {
+  try {
+    const raw = localStorage.getItem('mh_data');
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data.crops) crops = data.crops;
+    if (data.tasks) tasks = data.tasks;
+    if (data.bedSizes) bedSizes = data.bedSizes;
+    if (data.bedIDs && data.bedIDs.length) BED_IDS = data.bedIDs;
+    return true;
+  } catch(e) { return false; }
+}
+
+
 function importFileObject(file, skipSave = false) {
   return new Promise((resolve) => {
   const reader = new FileReader();
@@ -2391,6 +2418,7 @@ function confirmImport(skipSave = false) {
   tasks    = pendingImport.tasks;
   pendingImport = null;
   selectedBed = null;
+  saveToLocal();
   closeModal('modal-import');
   render();
 }
@@ -2773,8 +2801,9 @@ function showSyncToast(msg) {
   t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2500);
 }
 
-// Init
-snapshot(true); // true = skip gist save on initial snapshot
+// Init — load local data first (instant), then sync from Gist
+loadFromLocal();
+snapshot(true);
 showTab(currentTab);
 initGist();
 
