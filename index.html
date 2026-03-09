@@ -1521,17 +1521,28 @@ function renderOppgaver() {
         ${pts.map(t => {
           const tid = typeof t.id === 'string' ? `'${t.id}'` : t.id;
           const isAuto = typeof t.id === 'string' && t.id.startsWith('crop-');
+          const MONTHS_SHORT = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
+          const dateDisplay = t.date ? (() => { const [d,m] = t.date.split('-'); return `${+d}. ${MONTHS_SHORT[+m-1]}`; })() : '+ dato';
           return `
           <div class="task-row ${t.done?'done':''}">
             ${isAuto
               ? `<div class="check-btn ${t.done?'checked':''}" title="Registrer så/plante-logg for å krysse av" style="cursor:default;opacity:0.5">${t.done?'✓':'🔒'}</div>`
               : `<button class="check-btn ${t.done?'checked':''}" onclick="toggleTask(${tid})">${t.done?'✓':''}</button>`
             }
-            <div style="flex:1">
-              <div class="task-text">${t.text}</div>
-              ${t.date?`<div class="task-date">📅 ${t.date}</div>`:''}
+            <div style="flex:1;min-width:0">
+              ${isAuto
+                ? `<div class="task-text">${t.text}</div>`
+                : `<div class="task-text" onclick="startEditTaskText(${tid}, this)" style="cursor:text;min-height:20px" title="Trykk for å redigere">${t.text}</div>`
+              }
+              ${isAuto
+                ? (t.date ? `<div class="task-date">📅 ${dateDisplay}</div>` : '')
+                : `<div class="task-date" onclick="startEditTaskDate(${tid})" style="cursor:pointer;color:${t.date?'#6b7280':'rgba(107,114,128,0.5)'}">📅 ${dateDisplay}</div>`
+              }
             </div>
-            ${isAuto ? '' : `<button class="delete-btn" onclick="deleteTask(${tid})">×</button>`}
+            ${isAuto ? '' : `
+              <button onclick="cycleTaskPriority(${tid})" title="Endre prioritet" style="background:none;border:none;cursor:pointer;font-size:16px;padding:2px 4px;color:${pColors[t.priority]}">●</button>
+              <button class="delete-btn" onclick="deleteTask(${tid})">×</button>
+            `}
           </div>`;
         }).join('')}
       </div>`;
@@ -1540,10 +1551,81 @@ function renderOppgaver() {
 }
 
 function toggleTask(id) {
-  if (typeof id === 'string' && id.startsWith('crop-')) return; // locked
+  if (typeof id === 'string' && id.startsWith('crop-')) return;
   snapshot(); tasks = tasks.map(t => t.id===id ? {...t, done:!t.done} : t); render();
 }
 function deleteTask(id) { snapshot(); tasks = tasks.filter(t => t.id!==id); render(); }
+
+function startEditTaskText(id, el) {
+  if (el.querySelector('input')) return; // already editing
+  const current = el.textContent;
+  el.innerHTML = '';
+  const input = document.createElement('input');
+  input.value = current;
+  input.style.cssText = 'background:transparent;border:none;border-bottom:1px solid #34d399;outline:none;color:#d1fae5;font-size:14px;font-family:inherit;width:100%;caret-color:#34d399';
+  el.appendChild(input);
+  input.focus();
+  input.select();
+
+  function commit() {
+    const val = input.value.trim();
+    if (val && val !== current) {
+      snapshot();
+      tasks = tasks.map(t => t.id===id ? {...t, text:val} : t);
+    }
+    renderOppgaver();
+  }
+  input.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); commit(); } if (e.key==='Escape') renderOppgaver(); });
+  input.addEventListener('blur', commit);
+}
+
+function startEditTaskDate(id) {
+  const t = tasks.find(t => t.id===id);
+  if (!t) return;
+  // Reuse existing calendar picker via a temp hidden input approach
+  const tempBtnId = 'task-date-edit-btn-'+id;
+  const tempValId = 'task-date-edit-val-'+id;
+
+  // Create temp elements off-screen
+  let btn = document.getElementById(tempBtnId);
+  let val = document.getElementById(tempValId);
+  if (!btn) {
+    btn = document.createElement('button'); btn.id = tempBtnId; btn.style.cssText = 'position:fixed;left:-9999px';
+    val = document.createElement('input'); val.id = tempValId; val.type='hidden'; val.value = t.date||'';
+    document.body.appendChild(btn); document.body.appendChild(val);
+  } else {
+    val.value = t.date||'';
+  }
+
+  // Patch setDateField callback to save when done
+  const origSetDate = window._taskDateCallback;
+  window._taskDateEditId = id;
+  openCal(tempBtnId, tempValId);
+
+  // Poll for calendar close
+  const poll = setInterval(() => {
+    if (!document.getElementById('cal-popup')) {
+      clearInterval(poll);
+      const newDate = document.getElementById(tempValId)?.value || '';
+      if (newDate !== (t.date||'')) {
+        snapshot();
+        tasks = tasks.map(t2 => t2.id===id ? {...t2, date:newDate} : t2);
+      }
+      renderOppgaver();
+    }
+  }, 200);
+}
+
+function cycleTaskPriority(id) {
+  const order = ['høy','middels','lav'];
+  snapshot();
+  tasks = tasks.map(t => {
+    if (t.id !== id) return t;
+    const next = order[(order.indexOf(t.priority)+1) % order.length];
+    return {...t, priority:next};
+  });
+  renderOppgaver();
+}
 
 function addTask() {
   const text = document.getElementById('t-text').value.trim();
