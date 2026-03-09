@@ -2281,9 +2281,10 @@ function saveToLocal() {
   try {
     const data = {
       crops,
-      tasks: tasks.filter(t => !String(t.id).startsWith('crop-')), // skip auto-tasks
+      tasks: tasks.filter(t => !String(t.id).startsWith('crop-')),
       bedSizes,
       bedIDs: BED_IDS,
+      saved: new Date().toISOString(),
     };
     localStorage.setItem('mh_data', JSON.stringify(data));
   } catch(e) { console.warn('localStorage save failed:', e); }
@@ -2574,20 +2575,52 @@ function gistSetup() {
 
 async function gistLoadOnStart() {
   try {
+    // Get local timestamp
+    let localSaved = null;
+    try {
+      const raw = localStorage.getItem('mh_data');
+      if (raw) localSaved = JSON.parse(raw).saved || null;
+    } catch(e) {}
+
     if (gistId) {
-      const ok = await gistImport(true);
-      if (ok) {
-        clearTimeout(gistSaveTimer); gistSaveTimer = null;
-        showSyncToast('☁ Lastet inn fra GitHub'); return;
+      // Peek at Gist timestamp before deciding whether to load
+      const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
+        headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        const content = data.files?.[GIST_FILENAME]?.content;
+        if (content) {
+          const parsed = JSON.parse(content);
+          const gistSaved = parsed.saved || null;
+          // Only load from Gist if it is strictly newer than local data
+          if (!localSaved || (gistSaved && new Date(gistSaved) > new Date(localSaved))) {
+            const b64 = parsed.xlsx;
+            const binary = atob(b64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const file = new File([blob], 'markedshage.xlsx');
+            await importFileObject(file, true);
+            clearTimeout(gistSaveTimer); gistSaveTimer = null;
+            showSyncToast('☁ Lastet inn fra GitHub');
+          } else {
+            showSyncToast('☁ Lokal data er nyest');
+          }
+          return;
+        }
       }
     }
+
     const found = await gistFindExisting();
     if (found) {
       gistId = found;
       try { localStorage.setItem('mh_gist_id', gistId); } catch(e) {}
-      await gistImport(true);
-      clearTimeout(gistSaveTimer); gistSaveTimer = null;
-      showSyncToast('☁ Lastet inn fra GitHub');
+      const ok = await gistImport(true);
+      if (ok) {
+        clearTimeout(gistSaveTimer); gistSaveTimer = null;
+        showSyncToast('☁ Lastet inn fra GitHub');
+      }
     } else {
       await gistSave();
       showSyncToast('☁ Opprettet Gist på GitHub');
