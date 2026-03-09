@@ -9,7 +9,7 @@
 <meta name="description" content="Planleggingsverktøy for markedshage">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>🌱 Markedshage</title>
+<title>🌱 Markedshage Assistent</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -196,9 +196,30 @@
 <header>
   <div class="header-top">
     <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:8px">
-      <div>
-        <div class="header-eyebrow">Markedshage</div>
-        <h1>🌱 Hageplanlegger</h1>
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width:42px;height:42px;border-radius:10px;flex-shrink:0">
+          <rect width="512" height="512" rx="110" fill="#1a1005"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#c9a84c" opacity="0.9"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#c9a84c" opacity="0.9" transform="rotate(45 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#d4954a" opacity="0.85" transform="rotate(90 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#c9a84c" opacity="0.9" transform="rotate(135 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#d4954a" opacity="0.85" transform="rotate(180 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#c9a84c" opacity="0.9" transform="rotate(225 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#d4954a" opacity="0.85" transform="rotate(270 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#c9a84c" opacity="0.9" transform="rotate(315 256 256)"/>
+          <circle cx="256" cy="256" r="72" fill="#6b3d11"/>
+          <circle cx="256" cy="256" r="55" fill="#4a2a08"/>
+          <circle cx="256" cy="225" r="6" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="276" cy="238" r="6" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="276" cy="262" r="6" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="256" cy="275" r="6" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="236" cy="262" r="6" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="236" cy="238" r="6" fill="#c9a84c" opacity="0.5"/>
+        </svg>
+        <div>
+          <div class="header-eyebrow">Markedshage</div>
+          <h1 style="font-size:16px;font-weight:600;color:#e8f5e9;letter-spacing:0.02em;margin:0">Assistent</h1>
+        </div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;position:relative">
         <button id="undo-btn" onclick="undo()" title="Angre (Ctrl+Z)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↩</button>
@@ -401,6 +422,7 @@ let currentTab = "oversikt";
 let selectedBed = null;
 let cropFilter = "alle";
 let cropSearch = "";
+let expandedCrops = new Set();
 let cropSortField = localStorage.getItem('mh_sort_field') || 'name';
 let cropSortDir   = localStorage.getItem('mh_sort_dir')   || 'asc';
 let newPriority = "middels";
@@ -502,6 +524,7 @@ document.addEventListener('click', e => {
 
 function showTab(name) {
   currentTab = name;
+  expandedCrops = new Set(); // reset expanded state on tab switch
   document.querySelectorAll('#bottom-nav .tab-btn').forEach((b,i) => {
     b.classList.toggle('active', ['oversikt','senger','vekster','oppgaver','kalender'][i] === name);
   });
@@ -653,9 +676,9 @@ function renderOversikt() {
 
   const stats = [
     { label:"Sålogg",     val:`${sowingDone}/${sowingTotal}`,    icon:"🌱",  color:"#60a5fa" },
-    { label:"Plantelogg", val:`${plantingDone}/${plantingTotal}`,icon:"&#9978;&#65039;", color:"#34d399" },
-    { label:"Senger",     val:`${filledBeds}/${totalBeds}`,      icon:"🛏",  color:"#fbbf24" },
-    { label:"Verdi",     val:valueDisplay,                      icon:"💰",  color:"#f472b6" },
+    { label:"Plantelogg", val:`${plantingDone}/${plantingTotal}`,icon:"🪴",  color:"#34d399" },
+    { label:"Senger",     val:`${filledBeds}/${totalBeds}`,      icon:"🌿",  color:"#fbbf24" },
+    { label:"Verdi",      val:valueDisplay,                      icon:"💰",  color:"#f472b6" },
   ];
 
   const upcoming = tasks.filter(t => !t.done).sort((a,b) => new Date(a.date)-new Date(b.date)).slice(0,4);
@@ -754,25 +777,25 @@ function renderSenger() {
             const occupied = bedCropList.length > 0;
             const isSelected = bed === selectedBed;
             const cls = ['bed-cell', occupied?'occupied':'', isSelected?'selected':''].join(' ');
-            const allSameName = bedCropList.length > 1 && bedCropList.every(c => c.name === bedCropList[0].name);
 
             if (bedCropList.length === 1) {
               const c = bedCropList[0];
               return `<div class="${cls}" onclick="selectBed('${bed}')">
                 <div><span class="bed-label">Seng ${bed}</span></div>
                 <div class="bed-name">${c.name}</div>
-                <div style="margin-top:4px">${badge(c.status)}</div>
                 <div style="font-size:9px;color:#6b7280;margin-top:6px">${sz.length}m × ${sz.width}m</div>
               </div>`;
             } else if (bedCropList.length > 1) {
-              const label = allSameName ? bedCropList[0].name : `${bedCropList.length} vekster`;
-              const statuses = allSameName
-                ? bedCropList.map(c => badge(c.status)).join('')
-                : '';
+              // Group by name: if multiple crops share a name, show name once
+              const nameMap = {};
+              bedCropList.forEach(c => { nameMap[c.name] = (nameMap[c.name] || 0) + 1; });
+              const uniqueNames = Object.keys(nameMap);
+              const namesHtml = uniqueNames.map(n =>
+                `<div class="bed-name" style="font-size:11px;line-height:1.3">${n}</div>`
+              ).join('');
               return `<div class="${cls}" onclick="selectBed('${bed}')">
                 <div><span class="bed-label">Seng ${bed}</span></div>
-                <div class="bed-name">${label}</div>
-                <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:2px">${statuses}</div>
+                ${namesHtml}
                 <div style="font-size:9px;color:#6b7280;margin-top:4px">${sz.length}m × ${sz.width}m</div>
               </div>`;
             } else {
@@ -963,9 +986,9 @@ function renderVekster() {
   document.getElementById('tab-vekster').innerHTML = `
     <button class="add-btn" onclick="openAddCrop()">+ Legg til vekst</button>
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-      <div class="filter-bar" style="margin-bottom:0;flex:0 0 auto">
-        ${filters.map(f => `<button class="filter-btn ${cropFilter===f?'active':''}" onclick="setCropFilter('${f}')" style="padding:4px 8px;font-size:10px">${f==='alle'?'Alle':STATUS[f].label}</button>`).join('')}
-      </div>
+      <select onchange="setCropFilter(this.value)" style="padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:${cropFilter==='alle'?'#9ca3af':'#6ee7b7'};font-size:11px;font-family:inherit;cursor:pointer;outline:none;flex-shrink:0">
+        ${filters.map(f => `<option value="${f}" ${cropFilter===f?'selected':''} style="background:#1a2e1a;color:#e8f5e9">${f==='alle'?'Alle statuser':STATUS[f].label}</option>`).join('')}
+      </select>
       <div style="flex:1;display:flex;justify-content:center">
         <div style="display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:4px 10px;gap:6px">
           <span style="color:#4b5563;font-size:12px">⌕</span>
@@ -981,6 +1004,7 @@ function renderVekster() {
     ${sortedFiltered.map(c => {
       const s = STATUS[c.status];
       const plantCount = calcPlants(c);
+      const isExpanded = expandedCrops.has(c.id);
       return `<div class="crop-card">
         <div class="crop-header">
           <div class="crop-info">
@@ -1010,6 +1034,7 @@ function renderVekster() {
             return `${b}: ${calcPlants(bsCrop)}`;
           }).join(' · ')}</div>` : ''}
         </div>
+        ${isExpanded ? `
         <div class="crop-meta">
           <div>🛏 Seng: <span>${c.beds.join(', ')||'–'}</span></div>
           <div>📐 Radavstand: <span>${c.rowSpacing} cm</span></div>
@@ -1022,10 +1047,14 @@ function renderVekster() {
         ${c.sowLog ? `<div class="crop-notes">🌾 Sålogg: ${c.sowLog}</div>` : ''}
         ${c.plantLog ? `<div class="crop-notes">🪴 Plantelogg: ${c.plantLog}</div>` : ''}
         ${c.notes ? `<div class="crop-notes">📝 ${c.notes}</div>` : ''}
-        <div class="status-row">
-          ${Object.entries(STATUS).map(([k,v]) => `
-            <button class="status-btn ${c.status===k?'active':''}" style="--c:${v.color}" onclick="setCropStatus(${c.id},'${k}')">${v.label}</button>
-          `).join('')}
+        ` : ''}
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <div class="status-row" style="flex:1;margin-bottom:0">
+            ${Object.entries(STATUS).map(([k,v]) => `
+              <button class="status-btn ${c.status===k?'active':''}" style="--c:${v.color}" onclick="setCropStatus(${c.id},'${k}')">${v.label}</button>
+            `).join('')}
+          </div>
+          <button onclick="toggleCropExpand(${c.id})" style="flex-shrink:0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#6b7280;cursor:pointer;padding:5px 10px;font-size:11px;font-family:inherit;white-space:nowrap">${isExpanded ? '▲ Mindre' : '▼ Mer'}</button>
         </div>
       </div>`;
     }).join('')}
@@ -1170,6 +1199,12 @@ document.addEventListener('click', e => {
 });
 function setCropFilter(f) { cropFilter = f; renderVekster(); }
 function setCropStatus(id, status) { snapshot(); crops = crops.map(c => c.id===id ? {...c, status} : c); renderVekster(); }
+
+function toggleCropExpand(id) {
+  if (expandedCrops.has(id)) expandedCrops.delete(id);
+  else expandedCrops.add(id);
+  renderVekster();
+}
 
 function clearSearch() {
   cropSearch = '';
