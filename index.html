@@ -2633,8 +2633,12 @@ async function gistSave() {
       gistId = data.id;
       try { localStorage.setItem('mh_gist_id', gistId); } catch(e) {}
     }
-    if (resp.ok) showSyncToast('☁ Lagret til GitHub');
-    else showSyncToast('⚠ Lagring feilet');
+    if (resp.ok) {
+      showSyncToast('☁ Lagret til GitHub');
+      gistSaveTimer = null;
+      const btn = document.getElementById('gist-btn');
+      if (btn) { btn.style.color = '#34d399'; btn.title = 'GitHub Gist synkronisering'; }
+    } else showSyncToast('⚠ Lagring feilet');
   } catch(e) {
     console.warn('Gist save error:', e);
   }
@@ -2643,8 +2647,19 @@ async function gistSave() {
 function scheduleGistSave() {
   if (!gistConnected) return;
   clearTimeout(gistSaveTimer);
-  gistSaveTimer = setTimeout(gistSave, 5000);
+  // Show pending indicator on cloud button
+  const btn = document.getElementById('gist-btn');
+  if (btn) { btn.style.color = '#fbbf24'; btn.title = 'Ulagrede endringer – lagrer snart...'; }
+  gistSaveTimer = setTimeout(gistSave, 3000);
 }
+
+// Save immediately if user closes/navigates away with pending changes
+window.addEventListener('beforeunload', () => {
+  if (gistConnected && gistSaveTimer) {
+    clearTimeout(gistSaveTimer);
+    gistSave();
+  }
+});
 
 function gistShowMenu() {
   let menu = document.getElementById('gist-menu');
