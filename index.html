@@ -2421,7 +2421,7 @@ function confirmImport(skipSave = false) {
   tasks    = pendingImport.tasks;
   pendingImport = null;
   selectedBed = null;
-  if (!skipSave) saveToLocal(); // only save to localStorage on manual import, not Gist load
+  saveToLocal(); // always save — data is now correct regardless of source
   closeModal('modal-import');
   render();
 }
