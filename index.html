@@ -2687,8 +2687,8 @@ async function syncSave() {
       showSyncToast('☁ Lagret til JSONBin');
     } else {
       const errText = resp ? await resp.text() : 'ingen respons';
-      console.warn('JSONBin save failed:', resp?.status, errText);
-      showSyncToast('⚠ Lagring feilet');
+      console.error('JSONBin save failed. Status:', resp?.status, 'Body:', errText);
+      showSyncToast(`⚠ Feil ${resp?.status}: ${errText.slice(0,60)}`);
     }
   } catch(e) {
     console.warn('syncSave error:', e);
