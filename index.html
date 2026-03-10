@@ -447,7 +447,6 @@ function snapshot(skipGistSave = false) {
   if (history.length > MAX_HISTORY) history.shift();
   historyIndex = history.length - 1;
   updateUndoRedoBtns();
-  saveToLocal();
   if (!skipGistSave) scheduleGistSave();
 }
 
@@ -597,6 +596,7 @@ function syncCropTasks() {
 
 function render() {
   syncCropTasks();
+  saveToLocal();
   if (currentTab === 'oversikt')  renderOversikt();
   if (currentTab === 'senger')    renderSenger();
   if (currentTab === 'vekster')   renderVekster();
