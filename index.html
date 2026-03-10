@@ -2585,7 +2585,7 @@ async function gistLoadOnStart() {
     if (gistId) {
       // Peek at Gist timestamp before deciding whether to load
       const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
-        headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
       });
       if (resp.ok) {
         const data = await resp.json();
@@ -2633,7 +2633,7 @@ async function gistLoadOnStart() {
 
 async function gistFindExisting() {
   const resp = await fetch('https://api.github.com/gists', {
-    headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
   });
   if (!resp.ok) return null;
   const gists = await resp.json();
@@ -2645,7 +2645,7 @@ async function gistImport(silent = false) {
   if (!gistToken || !gistId) return false;
   try {
     const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
-      headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
     });
     if (!resp.ok) return false;
     const data = await resp.json();
@@ -2671,7 +2671,7 @@ async function gistFetchRaw() {
   if (!gistToken || !gistId) return null;
   try {
     const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
-      headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
     });
     if (!resp.ok) return null;
     const data = await resp.json();
