@@ -2645,19 +2645,22 @@ async function syncSave() {
     bedIDs: BED_IDS,
     saved: new Date().toISOString()
   };
+  const payloadStr = JSON.stringify(payload);
+  console.log('Sync payload size:', (payloadStr.length / 1024).toFixed(1), 'KB');
+  console.log('Crops:', crops.length, 'Tasks:', tasks.length);
   try {
     let resp;
     if (syncBinId) {
       resp = await fetch(`${JSONBIN_API}/${syncBinId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'X-Master-Key': syncKey },
-        body: JSON.stringify(payload)
+        body: payloadStr
       });
     } else {
       resp = await fetch(JSONBIN_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Master-Key': syncKey, 'X-Bin-Name': 'markedshage-data' },
-        body: JSON.stringify(payload)
+        body: payloadStr
       });
       if (resp.ok) {
         const result = await resp.json();
