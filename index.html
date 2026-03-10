@@ -2419,7 +2419,7 @@ function confirmImport(skipSave = false) {
   tasks    = pendingImport.tasks;
   pendingImport = null;
   selectedBed = null;
-  saveToLocal();
+  if (!skipSave) saveToLocal(); // only save to localStorage on manual import, not Gist load
   closeModal('modal-import');
   render();
 }
@@ -2569,6 +2569,10 @@ function gistSetup() {
   gistToken = token.trim();
   gistConnected = true;
   try { localStorage.setItem('mh_gist_token', gistToken); } catch(e) {}
+  // Clear local data so gistLoadOnStart will fetch from Gist
+  try { localStorage.removeItem('mh_data'); } catch(e) {}
+  gistId = null;
+  try { localStorage.removeItem('mh_gist_id'); } catch(e) {}
   renderGistBtn();
   gistLoadOnStart();
 }
