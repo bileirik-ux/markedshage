@@ -2573,15 +2573,8 @@ function gistSetup() {
   gistLoadOnStart();
 }
 
-async function gistLoadOnStart() {
+async function gistLoadOnStart(forceLoad = false) {
   try {
-    // Get local timestamp
-    let localSaved = null;
-    try {
-      const raw = localStorage.getItem('mh_data');
-      if (raw) localSaved = JSON.parse(raw).saved || null;
-    } catch(e) {}
-
     // Find gist if we don't have an ID
     if (!gistId) {
       const found = await gistFindExisting();
@@ -2598,7 +2591,7 @@ async function gistLoadOnStart() {
       return;
     }
 
-    // Fetch gist and compare timestamps
+    // Always load from Gist — it is the source of truth for sync
     const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
       headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
     });
@@ -2613,21 +2606,14 @@ async function gistLoadOnStart() {
     }
 
     const parsed = JSON.parse(content);
-    const gistSaved = parsed.saved || null;
-
-    if (!localSaved || (gistSaved && new Date(gistSaved) > new Date(localSaved))) {
-      // Gist is newer — load it
-      const b64 = parsed.xlsx;
-      const binary = atob(b64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      await importFileObject(new File([blob], 'markedshage.xlsx'), true);
-      clearTimeout(gistSaveTimer); gistSaveTimer = null;
-      showSyncToast('☁ Lastet inn fra GitHub');
-    } else {
-      showSyncToast('☁ Tilkoblet GitHub');
-    }
+    const b64 = parsed.xlsx;
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    await importFileObject(new File([blob], 'markedshage.xlsx'), true);
+    clearTimeout(gistSaveTimer); gistSaveTimer = null;
+    showSyncToast('☁ Lastet inn fra GitHub');
   } catch(e) {
     console.warn('Gist load failed:', e);
     showSyncToast('⚠ Kunne ikke koble til GitHub');
