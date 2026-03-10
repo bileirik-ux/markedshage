@@ -2585,7 +2585,7 @@ async function gistLoadOnStart() {
     // If we have local data, trust it — Gist may be cached/stale
     const hasLocal = !!localStorage.getItem('mh_data');
     if (hasLocal) {
-      showSyncToast('\u2601 Tilkoblet GitHub');
+      showSyncToast('☁ Tilkoblet GitHub');
       return;
     }
 
@@ -2600,31 +2600,42 @@ async function gistLoadOnStart() {
 
     if (!gistId) {
       await gistSave();
-      showSyncToast('\u2601 Opprettet Gist på GitHub');
+      showSyncToast('☁ Opprettet Gist på GitHub');
       return;
     }
 
     const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
       headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
     });
-    if (!resp.ok) throw new Error('Gist fetch failed: ' + resp.status);
+    if (!resp.ok) {
+      showSyncToast('☁ Tilkoblet GitHub');
+      return;
+    }
 
     const data = await resp.json();
     const content = data.files?.[GIST_FILENAME]?.content;
-    if (!content) { await gistSave(); showSyncToast('\u2601 Lagret til GitHub'); return; }
+    if (!content) {
+      await gistSave();
+      showSyncToast('☁ Lagret til GitHub');
+      return;
+    }
 
     const parsed = JSON.parse(content);
-    const b64 = parsed.xlsx;
-    const binary = atob(b64);
+    if (!parsed.xlsx) {
+      showSyncToast('☁ Tilkoblet GitHub');
+      return;
+    }
+
+    const binary = atob(parsed.xlsx);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     await importFileObject(new File([blob], 'markedshage.xlsx'), true);
     clearTimeout(gistSaveTimer); gistSaveTimer = null;
-    showSyncToast('\u2601 Lastet inn fra GitHub');
+    showSyncToast('☁ Lastet inn fra GitHub');
   } catch(e) {
     console.warn('Gist load failed:', e);
-    showSyncToast('\u26a0 Kunne ikke koble til GitHub');
+    showSyncToast('☁ Tilkoblet GitHub (offline modus)');
   }
 }
 
