@@ -226,7 +226,7 @@
       <div style="display:flex;gap:6px;align-items:center;position:relative">
         <button id="undo-btn" onclick="undo()" title="Angre (Ctrl+Z)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↩</button>
         <button id="redo-btn" onclick="redo()" title="Gjør om (Ctrl+Y)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↪</button>
-        <button onclick="gistConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="JSONBin synkronisering" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">☁</button>
+        <button onclick="syncConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="JSONBin synkronisering" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">☁</button>
         <button onclick="toggleGearMenu()" id="gear-btn" title="Innstillinger" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">⚙</button>
         <div id="gear-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:190px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
           <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:#60a5fa;font-family:inherit" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">⬆ Importer fra Excel<input type="file" accept=".xlsx" onchange="importFromExcel(event);closeGearMenu()" style="display:none"></label>
@@ -436,7 +436,7 @@ const MAX_HISTORY = 50;
 let history = [];   // array of snapshots {crops, tasks, bedSizes, BED_IDS}
 let historyIndex = -1;
 
-function snapshot(skipGistSave = false) {
+function snapshot(skipSync = false) {
   history = history.slice(0, historyIndex + 1);
   history.push({
     crops:    JSON.parse(JSON.stringify(crops)),
@@ -447,7 +447,7 @@ function snapshot(skipGistSave = false) {
   if (history.length > MAX_HISTORY) history.shift();
   historyIndex = history.length - 1;
   updateUndoRedoBtns();
-  if (!skipGistSave) scheduleGistSave();
+  if (!skipSync) scheduleSync();
 }
 
 function undo() {
@@ -2412,7 +2412,7 @@ function importFileObject(file, skipSave = false) {
 
 function confirmImport(skipSave = false) {
   if (!pendingImport) return;
-  snapshot(skipSave);
+  snapshot(true);
   crops    = pendingImport.crops;
   bedSizes = pendingImport.bedSizes;
   BED_IDS  = pendingImport.bedIDs;
@@ -2531,199 +2531,207 @@ function styleHeaderRow(ws, numCols) {
    GITHUB GIST SYNC
    ═══════════════════════════════════════════════════════ */
 
+// ══════════════════════════════════════════════════════════════
+// SYNKRONISERING — JSONBin.io
+// ══════════════════════════════════════════════════════════════
 const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
 
-let gistToken     = null;  // reused for JSONBin master key
-let gistId        = null;  // reused for JSONBin bin ID
-let gistConnected = false;
-let gistSaveTimer = null;
+let syncKey       = null;  // JSONBin Master Key
+let syncBinId     = null;  // JSONBin Bin ID
+let syncConnected = false;
+let syncTimer     = null;
 
-function initGist() {
+function initSync() {
   try {
-    gistToken     = localStorage.getItem('mh_sync_key') || localStorage.getItem('mh_gist_token') || null;
-    gistId        = localStorage.getItem('mh_sync_id')  || localStorage.getItem('mh_gist_id')    || null;
-    gistConnected = !!gistToken;
+    syncKey       = localStorage.getItem('mh_sync_key') || null;
+    syncBinId     = localStorage.getItem('mh_sync_id')  || null;
+    syncConnected = !!syncKey;
   } catch(e) {}
-  renderGistBtn();
-  if (gistConnected) gistLoadOnStart();
+  renderSyncBtn();
+  if (syncConnected) syncLoadOnStart();
 }
 
-function renderGistBtn() {
+function renderSyncBtn() {
   const btn = document.getElementById('gist-btn');
   if (!btn) return;
-  btn.style.color = gistConnected ? '#34d399' : '#6b7280';
+  btn.style.color = syncConnected ? '#34d399' : '#6b7280';
+  btn.title = syncConnected ? 'JSONBin synkronisering – tilkoblet' : 'Koble til synkronisering';
 }
 
+// Called when user enters API key
 function gistSetup() {
-  const existing = gistToken || '';
   const key = prompt(
-    'JSONBin.io Master Key\n\n' +
+    'JSONBin.io API-nøkkel\n\n' +
     'Slik oppretter du en nøkkel:\n' +
-    '1. Gå til jsonbin.io og lag en gratis konto\n' +
-    '2. Gå til API Keys-siden\n' +
-    '3. Kopier Master Key og lim inn her:',
-    existing
+    '1. Gå til jsonbin.io og opprett en gratis konto\n' +
+    '2. Klikk på "API Keys" i menyen\n' +
+    '3. Kopier "Master Key" og lim inn her:',
+    syncKey || ''
   );
   if (!key || !key.trim()) return;
-  gistToken = key.trim();
-  gistConnected = true;
-  try { localStorage.setItem('mh_sync_key', gistToken); } catch(e) {}
-  try { localStorage.removeItem('mh_data'); } catch(e) {}
-  gistId = null;
-  try { localStorage.removeItem('mh_sync_id'); } catch(e) {}
-  renderGistBtn();
-  gistLoadOnStart();
+  syncKey = key.trim();
+  syncBinId = null;
+  syncConnected = true;
+  try {
+    localStorage.setItem('mh_sync_key', syncKey);
+    localStorage.removeItem('mh_sync_id');
+    localStorage.removeItem('mh_data'); // force load from JSONBin
+  } catch(e) {}
+  renderSyncBtn();
+  syncLoadOnStart();
 }
 
-async function gistLoadOnStart() {
+// On startup: load from JSONBin if no local data
+async function syncLoadOnStart() {
   try {
     const hasLocal = !!localStorage.getItem('mh_data');
     if (hasLocal) {
       showSyncToast('☁ Tilkoblet JSONBin');
       return;
     }
-    if (!gistId) {
-      showSyncToast('☁ Tilkoblet JSONBin (ingen data ennå)');
-      await gistSave();
+    if (!syncBinId) {
+      // No bin yet — save current state to create one
+      showSyncToast('☁ Oppretter JSONBin...');
+      await syncSave();
       return;
     }
-    const resp = await fetch(`${JSONBIN_API}/${gistId}/latest`, {
-      headers: { 'X-Master-Key': gistToken, 'X-Bin-Meta': 'false' }
-    });
-    if (!resp.ok) { showSyncToast('☁ Tilkoblet JSONBin'); return; }
-    const parsed = await resp.json();
-    if (!parsed.xlsx) { showSyncToast('☁ Tilkoblet JSONBin'); return; }
-    const binary = atob(parsed.xlsx);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    await importFileObject(new File([blob], 'markedshage.xlsx'), true);
-    clearTimeout(gistSaveTimer); gistSaveTimer = null;
-    showSyncToast('☁ Lastet inn fra JSONBin');
+    await syncLoad(false);
   } catch(e) {
-    console.warn('JSONBin load failed:', e);
-    showSyncToast('☁ Tilkoblet JSONBin (offline modus)');
+    console.warn('syncLoadOnStart error:', e);
+    showSyncToast('☁ Frakoblet (prøv igjen senere)');
   }
 }
 
-async function gistFindExisting() {
-  return null; // not used with JSONBin
-}
-
-async function gistImport(silent = false) {
-  if (!gistToken || !gistId) return false;
+// Load data from JSONBin and import it
+async function syncLoad(silent = false) {
+  if (!syncKey || !syncBinId) return false;
   try {
-    const resp = await fetch(`${JSONBIN_API}/${gistId}/latest`, {
-      headers: { 'X-Master-Key': gistToken, 'X-Bin-Meta': 'false' }
+    const resp = await fetch(`${JSONBIN_API}/${syncBinId}/latest`, {
+      headers: { 'X-Master-Key': syncKey, 'X-Bin-Meta': 'false' }
     });
-    if (!resp.ok) return false;
-    const parsed = await resp.json();
-    if (!parsed.xlsx) return false;
-    const binary = atob(parsed.xlsx);
+    if (!resp.ok) {
+      console.warn('JSONBin read failed:', resp.status, await resp.text());
+      if (!silent) showSyncToast('⚠ Kunne ikke laste fra JSONBin');
+      return false;
+    }
+    const data = await resp.json();
+    if (!data || !data.xlsx) {
+      if (!silent) showSyncToast('☁ JSONBin er tom');
+      return false;
+    }
+    // Decode base64 xlsx
+    const binary = atob(data.xlsx);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     await importFileObject(new File([blob], 'markedshage.xlsx'), true);
+    clearTimeout(syncTimer); syncTimer = null;
     if (!silent) showSyncToast('☁ Lastet inn fra JSONBin');
     return true;
-  } catch(e) { return false; }
-}
-
-
-
-function parseTasksFromSheet(wsO) {
-  if (!wsO) return [];
-  const rows = XLSX.utils.sheet_to_json(wsO, { header: 1 });
-  const result = [];
-  for (let i = 1; i < rows.length; i++) {
-    const r = rows[i];
-    if (!r[0]) continue;
-    result.push({
-      text:     String(r[0] || ''),
-      date:     parseImportDate(r[1]),
-      priority: parsePriority(String(r[2] || '')),
-      done:     String(r[3] || '').toLowerCase() === 'ja',
-    });
+  } catch(e) {
+    console.warn('syncLoad error:', e);
+    if (!silent) showSyncToast('⚠ Feil ved innlasting');
+    return false;
   }
-  return result;
 }
 
-async function gistSave() {
-  if (!gistToken) return;
+// Save current state to JSONBin
+async function syncSave() {
+  if (!syncKey) return;
+  // Build xlsx as base64
   const wb = buildWorkbook();
   const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   let binary = '';
   const bytes = new Uint8Array(wbArray);
   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
   const b64 = btoa(binary);
-  const payload = JSON.stringify({ xlsx: b64, saved: new Date().toISOString() });
+
+  const payload = { xlsx: b64, saved: new Date().toISOString() };
+
   try {
     let resp;
-    if (gistId) {
-      resp = await fetch(`${JSONBIN_API}/${gistId}`, {
+    if (syncBinId) {
+      // Update existing bin
+      resp = await fetch(`${JSONBIN_API}/${syncBinId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-Master-Key': gistToken },
-        body: payload
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': syncKey
+        },
+        body: JSON.stringify(payload)
       });
     } else {
+      // Create new bin
       resp = await fetch(JSONBIN_API, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Master-Key': gistToken, 'X-Bin-Name': 'markedshage', 'X-Bin-Private': 'true' },
-        body: payload
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': syncKey,
+          'X-Bin-Name': 'markedshage-data'
+        },
+        body: JSON.stringify(payload)
       });
       if (resp.ok) {
-        const data = await resp.json();
-        gistId = data.metadata?.id || data.record?.id || data.id;
-        try { localStorage.setItem('mh_sync_id', gistId); } catch(e) {}
+        const result = await resp.json();
+        syncBinId = result?.metadata?.id;
+        if (syncBinId) {
+          try { localStorage.setItem('mh_sync_id', syncBinId); } catch(e) {}
+        }
       }
     }
+
     if (resp && resp.ok) {
-      showSyncToast('☁ Lagret til JSONBin');
-      gistSaveTimer = null;
+      syncTimer = null;
       const btn = document.getElementById('gist-btn');
-      if (btn) { btn.style.color = '#34d399'; btn.title = 'JSONBin synkronisering'; }
+      if (btn) { btn.style.color = '#34d399'; btn.title = 'JSONBin synkronisering – tilkoblet'; }
+      showSyncToast('☁ Lagret til JSONBin');
     } else {
+      const errText = resp ? await resp.text() : 'ingen respons';
+      console.warn('JSONBin save failed:', resp?.status, errText);
       showSyncToast('⚠ Lagring feilet');
     }
   } catch(e) {
-    console.warn('JSONBin save error:', e);
+    console.warn('syncSave error:', e);
+    showSyncToast('⚠ Lagring feilet');
   }
 }
 
-function scheduleGistSave() {
-  if (!gistConnected) return;
-  saveToLocal(); // save immediately to localStorage
-  clearTimeout(gistSaveTimer);
+// Schedule save with debounce
+function scheduleSync() {
+  if (!syncConnected) return;
+  saveToLocal();
+  clearTimeout(syncTimer);
   const btn = document.getElementById('gist-btn');
   if (btn) { btn.style.color = '#fbbf24'; btn.title = 'Ulagrede endringer – lagrer snart...'; }
-  gistSaveTimer = setTimeout(gistSave, 3000);
+  syncTimer = setTimeout(syncSave, 3000);
 }
 
-// Save immediately if user closes/navigates away with pending changes
+// Save immediately if user closes tab with pending changes
 window.addEventListener('beforeunload', () => {
-  if (gistConnected && gistSaveTimer) {
-    clearTimeout(gistSaveTimer);
-    gistSave();
+  if (syncConnected && syncTimer) {
+    clearTimeout(syncTimer);
+    syncSave();
   }
 });
 
+// Dropdown menu
 function gistShowMenu() {
   let menu = document.getElementById('gist-menu');
   if (menu) { menu.remove(); return; }
   menu = document.createElement('div');
   menu.id = 'gist-menu';
-  menu.style.cssText = 'position:fixed;background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:200px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5)';
+  menu.style.cssText = 'position:fixed;background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:210px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5)';
 
   const items = [
-    { label: '⬇ Last inn fra JSONBin', fn: () => { localStorage.removeItem('mh_data'); gistLoadOnStart(); menu.remove(); } },
-    { label: '⬆ Lagre til JSONBin',    fn: () => { gistSave();   menu.remove(); } },
-    { label: '─────────────────', fn: null },
-    { label: '🔑 Endre token',         fn: () => { gistSetup();  menu.remove(); } },
-    { label: '🔓 Koble fra',           fn: () => { gistDisconnect(); menu.remove(); }, color: '#f87171' },
+    { label: '⬇ Last inn fra JSONBin', fn: () => { localStorage.removeItem('mh_data'); syncBinId = localStorage.getItem('mh_sync_id'); syncLoadOnStart(); menu.remove(); } },
+    { label: '⬆ Lagre til JSONBin',   fn: () => { syncSave(); menu.remove(); } },
+    { sep: true },
+    { label: '🔑 Endre API-nøkkel',    fn: () => { gistSetup(); menu.remove(); } },
+    { label: '🔓 Koble fra',           fn: () => { syncDisconnect(); menu.remove(); }, color: '#f87171' },
   ];
 
   items.forEach(item => {
-    if (!item.fn) {
+    if (item.sep) {
       const div = document.createElement('div');
       div.style.cssText = 'height:1px;background:rgba(255,255,255,0.08);margin:4px 0';
       menu.appendChild(div);
@@ -2738,16 +2746,6 @@ function gistShowMenu() {
     menu.appendChild(btn);
   });
 
-  // Hidden file input for Excel import
-  let fileInput = document.getElementById('gist-excel-import');
-  if (!fileInput) {
-    fileInput = document.createElement('input');
-    fileInput.type = 'file'; fileInput.accept = '.xlsx'; fileInput.id = 'gist-excel-import';
-    fileInput.style.display = 'none';
-    fileInput.onchange = (e) => importFromExcel(e);
-    document.body.appendChild(fileInput);
-  }
-
   document.body.appendChild(menu);
   const gistBtn = document.getElementById('gist-btn');
   const rect = gistBtn.getBoundingClientRect();
@@ -2755,10 +2753,13 @@ function gistShowMenu() {
   menu.style.right = (window.innerWidth - rect.right) + 'px';
 }
 
-function gistDisconnect() {
-  gistToken = null; gistId = null; gistConnected = false;
-  try { localStorage.removeItem('mh_gist_token'); localStorage.removeItem('mh_gist_id'); } catch(e) {}
-  renderGistBtn();
+function syncDisconnect() {
+  syncKey = null; syncBinId = null; syncConnected = false;
+  try {
+    localStorage.removeItem('mh_sync_key');
+    localStorage.removeItem('mh_sync_id');
+  } catch(e) {}
+  renderSyncBtn();
   showSyncToast('Koblet fra JSONBin');
 }
 
@@ -2776,11 +2777,15 @@ function showSyncToast(msg) {
   t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2500);
 }
 
-// Init — load local data first (instant), then sync from Gist
+// Aliases for old internal references
+function initGist() { initSync(); }
+function scheduleGistSave() { scheduleSync(); }
+
+// Init
 loadFromLocal();
 snapshot(true);
 showTab(currentTab);
-initGist();
+initSync();
 
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
