@@ -226,7 +226,7 @@
       <div style="display:flex;gap:6px;align-items:center;position:relative">
         <button id="undo-btn" onclick="undo()" title="Angre (Ctrl+Z)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↩</button>
         <button id="redo-btn" onclick="redo()" title="Gjør om (Ctrl+Y)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↪</button>
-        <button onclick="gistConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="GitHub Gist synkronisering" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">☁</button>
+        <button onclick="gistConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="JSONBin synkronisering" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">☁</button>
         <button onclick="toggleGearMenu()" id="gear-btn" title="Innstillinger" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">⚙</button>
         <div id="gear-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:190px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
           <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:#60a5fa;font-family:inherit" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">⬆ Importer fra Excel<input type="file" accept=".xlsx" onchange="importFromExcel(event);closeGearMenu()" style="display:none"></label>
@@ -2531,17 +2531,17 @@ function styleHeaderRow(ws, numCols) {
    GITHUB GIST SYNC
    ═══════════════════════════════════════════════════════ */
 
-const GIST_FILENAME = 'markedshage_data.json';
+const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
 
-let gistToken     = null;
-let gistId        = null;
+let gistToken     = null;  // reused for JSONBin master key
+let gistId        = null;  // reused for JSONBin bin ID
 let gistConnected = false;
 let gistSaveTimer = null;
 
 function initGist() {
   try {
-    gistToken     = localStorage.getItem('mh_gist_token') || null;
-    gistId        = localStorage.getItem('mh_gist_id')    || null;
+    gistToken     = localStorage.getItem('mh_sync_key') || localStorage.getItem('mh_gist_token') || null;
+    gistId        = localStorage.getItem('mh_sync_id')  || localStorage.getItem('mh_gist_id')    || null;
     gistConnected = !!gistToken;
   } catch(e) {}
   renderGistBtn();
@@ -2556,148 +2556,80 @@ function renderGistBtn() {
 
 function gistSetup() {
   const existing = gistToken || '';
-  const token = prompt(
-    'GitHub Personal Access Token\n\n' +
-    'Slik oppretter du et token:\n' +
-    '1. Gå til github.com → Settings → Developer settings\n' +
-    '2. Personal access tokens → Tokens (classic) → Generate new token\n' +
-    '3. Gi det et navn, velg kun "gist" under scopes\n' +
-    '4. Kopier tokenet og lim inn her:',
+  const key = prompt(
+    'JSONBin.io Master Key\n\n' +
+    'Slik oppretter du en nøkkel:\n' +
+    '1. Gå til jsonbin.io og lag en gratis konto\n' +
+    '2. Gå til API Keys-siden\n' +
+    '3. Kopier Master Key og lim inn her:',
     existing
   );
-  if (!token || !token.trim()) return;
-  gistToken = token.trim();
+  if (!key || !key.trim()) return;
+  gistToken = key.trim();
   gistConnected = true;
-  try { localStorage.setItem('mh_gist_token', gistToken); } catch(e) {}
-  // Clear local data so gistLoadOnStart will fetch from Gist
+  try { localStorage.setItem('mh_sync_key', gistToken); } catch(e) {}
   try { localStorage.removeItem('mh_data'); } catch(e) {}
   gistId = null;
-  try { localStorage.removeItem('mh_gist_id'); } catch(e) {}
+  try { localStorage.removeItem('mh_sync_id'); } catch(e) {}
   renderGistBtn();
   gistLoadOnStart();
 }
 
 async function gistLoadOnStart() {
   try {
-    // If we have local data, trust it — Gist may be cached/stale
     const hasLocal = !!localStorage.getItem('mh_data');
     if (hasLocal) {
-      showSyncToast('☁ Tilkoblet GitHub');
+      showSyncToast('☁ Tilkoblet JSONBin');
       return;
     }
-
-    // No local data — load from Gist
     if (!gistId) {
-      const found = await gistFindExisting();
-      if (found) {
-        gistId = found;
-        try { localStorage.setItem('mh_gist_id', gistId); } catch(e) {}
-      }
-    }
-
-    if (!gistId) {
+      showSyncToast('☁ Tilkoblet JSONBin (ingen data ennå)');
       await gistSave();
-      showSyncToast('☁ Opprettet Gist på GitHub');
       return;
     }
-
-    const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
-      headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
+    const resp = await fetch(`${JSONBIN_API}/${gistId}/latest`, {
+      headers: { 'X-Master-Key': gistToken, 'X-Bin-Meta': 'false' }
     });
-    if (!resp.ok) {
-      showSyncToast('☁ Tilkoblet GitHub');
-      return;
-    }
-
-    const data = await resp.json();
-    const content = data.files?.[GIST_FILENAME]?.content;
-    if (!content) {
-      await gistSave();
-      showSyncToast('☁ Lagret til GitHub');
-      return;
-    }
-
-    const parsed = JSON.parse(content);
-    if (!parsed.xlsx) {
-      showSyncToast('☁ Tilkoblet GitHub');
-      return;
-    }
-
+    if (!resp.ok) { showSyncToast('☁ Tilkoblet JSONBin'); return; }
+    const parsed = await resp.json();
+    if (!parsed.xlsx) { showSyncToast('☁ Tilkoblet JSONBin'); return; }
     const binary = atob(parsed.xlsx);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     await importFileObject(new File([blob], 'markedshage.xlsx'), true);
     clearTimeout(gistSaveTimer); gistSaveTimer = null;
-    showSyncToast('☁ Lastet inn fra GitHub');
+    showSyncToast('☁ Lastet inn fra JSONBin');
   } catch(e) {
-    console.warn('Gist load failed:', e);
-    showSyncToast('☁ Tilkoblet GitHub (offline modus)');
+    console.warn('JSONBin load failed:', e);
+    showSyncToast('☁ Tilkoblet JSONBin (offline modus)');
   }
 }
 
 async function gistFindExisting() {
-  const resp = await fetch('https://api.github.com/gists', {
-    headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
-  });
-  if (!resp.ok) return null;
-  const gists = await resp.json();
-  // Find all matching gists and pick the most recently updated one
-  const matches = gists.filter(g => g.files && g.files[GIST_FILENAME]);
-  if (!matches.length) return null;
-  matches.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-  return matches[0].id;
+  return null; // not used with JSONBin
 }
 
 async function gistImport(silent = false) {
   if (!gistToken || !gistId) return false;
   try {
-    const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
-      headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
+    const resp = await fetch(`${JSONBIN_API}/${gistId}/latest`, {
+      headers: { 'X-Master-Key': gistToken, 'X-Bin-Meta': 'false' }
     });
     if (!resp.ok) return false;
-    const data = await resp.json();
-    const content = data.files?.[GIST_FILENAME]?.content;
-    if (!content) return false;
-    const parsed = JSON.parse(content);
-    const b64 = parsed.xlsx;
-    const binary = atob(b64);
+    const parsed = await resp.json();
+    if (!parsed.xlsx) return false;
+    const binary = atob(parsed.xlsx);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const file = new File([blob], 'markedshage.xlsx');
-    await importFileObject(file, true); // skipSave=true: don't trigger gist save after loading
-    if (!silent) showSyncToast('☁ Lastet inn fra GitHub');
+    await importFileObject(new File([blob], 'markedshage.xlsx'), true);
+    if (!silent) showSyncToast('☁ Lastet inn fra JSONBin');
     return true;
-  } catch(e) {
-    console.warn('Gist import error:', e);
-    return false;
-  }
+  } catch(e) { return false; }
 }
 
-async function gistFetchRaw() {
-  if (!gistToken || !gistId) return null;
-  try {
-    const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
-      headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    const content = data.files?.[GIST_FILENAME]?.content;
-    if (!content) return null;
-    const parsed = JSON.parse(content);
-    // Decode xlsx to get remote state
-    const b64 = parsed.xlsx;
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const wb = XLSX.read(bytes, { type: 'array', cellDates: false });
-    return { wb, saved: parsed.saved };
-  } catch(e) {
-    console.warn('gistFetchRaw error:', e);
-    return null;
-  }
-}
+
 
 function parseTasksFromSheet(wsO) {
   if (!wsO) return [];
@@ -2718,41 +2650,43 @@ function parseTasksFromSheet(wsO) {
 
 async function gistSave() {
   if (!gistToken) return;
-
   const wb = buildWorkbook();
   const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   let binary = '';
   const bytes = new Uint8Array(wbArray);
   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
   const b64 = btoa(binary);
-  const content = JSON.stringify({ xlsx: b64, saved: new Date().toISOString() });
-  const body = { description: 'Markedshage data', public: false, files: { [GIST_FILENAME]: { content } } };
+  const payload = JSON.stringify({ xlsx: b64, saved: new Date().toISOString() });
   try {
     let resp;
     if (gistId) {
-      resp = await fetch(`https://api.github.com/gists/${gistId}`, {
-        method: 'PATCH',
-        headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+      resp = await fetch(`${JSONBIN_API}/${gistId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': gistToken },
+        body: payload
       });
     } else {
-      resp = await fetch('https://api.github.com/gists', {
+      resp = await fetch(JSONBIN_API, {
         method: 'POST',
-        headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': gistToken, 'X-Bin-Name': 'markedshage', 'X-Bin-Private': 'true' },
+        body: payload
       });
-      const data = await resp.json();
-      gistId = data.id;
-      try { localStorage.setItem('mh_gist_id', gistId); } catch(e) {}
+      if (resp.ok) {
+        const data = await resp.json();
+        gistId = data.metadata?.id || data.record?.id || data.id;
+        try { localStorage.setItem('mh_sync_id', gistId); } catch(e) {}
+      }
     }
-    if (resp.ok) {
-      showSyncToast('\u2601 Lagret til GitHub');
+    if (resp && resp.ok) {
+      showSyncToast('☁ Lagret til JSONBin');
       gistSaveTimer = null;
       const btn = document.getElementById('gist-btn');
-      if (btn) { btn.style.color = '#34d399'; btn.title = 'GitHub Gist synkronisering'; }
-    } else showSyncToast('\u26a0 Lagring feilet');
+      if (btn) { btn.style.color = '#34d399'; btn.title = 'JSONBin synkronisering'; }
+    } else {
+      showSyncToast('⚠ Lagring feilet');
+    }
   } catch(e) {
-    console.warn('Gist save error:', e);
+    console.warn('JSONBin save error:', e);
   }
 }
 
@@ -2781,8 +2715,8 @@ function gistShowMenu() {
   menu.style.cssText = 'position:fixed;background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:200px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5)';
 
   const items = [
-    { label: '⬇ Last inn fra GitHub', fn: () => { localStorage.removeItem('mh_data'); gistLoadOnStart(); menu.remove(); } },
-    { label: '⬆ Lagre til GitHub',    fn: () => { gistSave();   menu.remove(); } },
+    { label: '⬇ Last inn fra JSONBin', fn: () => { localStorage.removeItem('mh_data'); gistLoadOnStart(); menu.remove(); } },
+    { label: '⬆ Lagre til JSONBin',    fn: () => { gistSave();   menu.remove(); } },
     { label: '─────────────────', fn: null },
     { label: '🔑 Endre token',         fn: () => { gistSetup();  menu.remove(); } },
     { label: '🔓 Koble fra',           fn: () => { gistDisconnect(); menu.remove(); }, color: '#f87171' },
@@ -2825,7 +2759,7 @@ function gistDisconnect() {
   gistToken = null; gistId = null; gistConnected = false;
   try { localStorage.removeItem('mh_gist_token'); localStorage.removeItem('mh_gist_id'); } catch(e) {}
   renderGistBtn();
-  showSyncToast('Koblet fra GitHub');
+  showSyncToast('Koblet fra JSONBin');
 }
 
 function showSyncToast(msg) {
