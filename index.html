@@ -2573,9 +2573,16 @@ function gistSetup() {
   gistLoadOnStart();
 }
 
-async function gistLoadOnStart(forceLoad = false) {
+async function gistLoadOnStart() {
   try {
-    // Find gist if we don't have an ID
+    // If we have local data, trust it — Gist may be cached/stale
+    const hasLocal = !!localStorage.getItem('mh_data');
+    if (hasLocal) {
+      showSyncToast('\u2601 Tilkoblet GitHub');
+      return;
+    }
+
+    // No local data — load from Gist
     if (!gistId) {
       const found = await gistFindExisting();
       if (found) {
@@ -2585,13 +2592,11 @@ async function gistLoadOnStart(forceLoad = false) {
     }
 
     if (!gistId) {
-      // No existing gist — create one from current local data
       await gistSave();
-      showSyncToast('☁ Opprettet Gist på GitHub');
+      showSyncToast('\u2601 Opprettet Gist på GitHub');
       return;
     }
 
-    // Always load from Gist — it is the source of truth for sync
     const resp = await fetch(`https://api.github.com/gists/${gistId}`, {
       headers: { Authorization: `token ${gistToken}`, Accept: 'application/vnd.github.v3+json' }
     });
@@ -2599,11 +2604,7 @@ async function gistLoadOnStart(forceLoad = false) {
 
     const data = await resp.json();
     const content = data.files?.[GIST_FILENAME]?.content;
-    if (!content) {
-      await gistSave();
-      showSyncToast('☁ Lagret til GitHub');
-      return;
-    }
+    if (!content) { await gistSave(); showSyncToast('\u2601 Lagret til GitHub'); return; }
 
     const parsed = JSON.parse(content);
     const b64 = parsed.xlsx;
@@ -2613,10 +2614,10 @@ async function gistLoadOnStart(forceLoad = false) {
     const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     await importFileObject(new File([blob], 'markedshage.xlsx'), true);
     clearTimeout(gistSaveTimer); gistSaveTimer = null;
-    showSyncToast('☁ Lastet inn fra GitHub');
+    showSyncToast('\u2601 Lastet inn fra GitHub');
   } catch(e) {
     console.warn('Gist load failed:', e);
-    showSyncToast('⚠ Kunne ikke koble til GitHub');
+    showSyncToast('\u26a0 Kunne ikke koble til GitHub');
   }
 }
 
@@ -2762,7 +2763,7 @@ function gistShowMenu() {
   menu.style.cssText = 'position:fixed;background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:200px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5)';
 
   const items = [
-    { label: '⬇ Last inn fra GitHub', fn: () => { gistImport(); menu.remove(); } },
+    { label: '⬇ Last inn fra GitHub', fn: () => { localStorage.removeItem('mh_data'); gistLoadOnStart(); menu.remove(); } },
     { label: '⬆ Lagre til GitHub',    fn: () => { gistSave();   menu.remove(); } },
     { label: '─────────────────', fn: null },
     { label: '🔑 Endre token',         fn: () => { gistSetup();  menu.remove(); } },
