@@ -2590,7 +2590,6 @@ async function syncLoadOnStart() {
       return;
     }
     if (!syncBinId) {
-      // No bin yet — save current state to create one
       showSyncToast('☁ Oppretter JSONBin...');
       await syncSave();
       return;
@@ -2615,17 +2614,18 @@ async function syncLoad(silent = false) {
       return false;
     }
     const data = await resp.json();
-    if (!data || !data.xlsx) {
+    if (!data || !data.crops) {
       if (!silent) showSyncToast('☁ JSONBin er tom');
       return false;
     }
-    // Decode base64 xlsx
-    const binary = atob(data.xlsx);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    await importFileObject(new File([blob], 'markedshage.xlsx'), true);
+    // Load data directly — no Excel parsing needed
+    if (data.crops)   crops    = data.crops;
+    if (data.tasks)   tasks    = data.tasks;
+    if (data.bedSizes) bedSizes = data.bedSizes;
+    if (data.bedIDs && data.bedIDs.length) BED_IDS = data.bedIDs;
+    saveToLocal();
     clearTimeout(syncTimer); syncTimer = null;
+    render();
     if (!silent) showSyncToast('☁ Lastet inn fra JSONBin');
     return true;
   } catch(e) {
@@ -2638,48 +2638,33 @@ async function syncLoad(silent = false) {
 // Save current state to JSONBin
 async function syncSave() {
   if (!syncKey) return;
-  // Build xlsx as base64
-  const wb = buildWorkbook();
-  const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-  let binary = '';
-  const bytes = new Uint8Array(wbArray);
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  const b64 = btoa(binary);
-
-  const payload = { xlsx: b64, saved: new Date().toISOString() };
-
+  const payload = {
+    crops,
+    tasks: tasks.filter(t => !String(t.id).startsWith('crop-')),
+    bedSizes,
+    bedIDs: BED_IDS,
+    saved: new Date().toISOString()
+  };
   try {
     let resp;
     if (syncBinId) {
-      // Update existing bin
       resp = await fetch(`${JSONBIN_API}/${syncBinId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': syncKey
-        },
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': syncKey },
         body: JSON.stringify(payload)
       });
     } else {
-      // Create new bin
       resp = await fetch(JSONBIN_API, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': syncKey,
-          'X-Bin-Name': 'markedshage-data'
-        },
+        headers: { 'Content-Type': 'application/json', 'X-Master-Key': syncKey, 'X-Bin-Name': 'markedshage-data' },
         body: JSON.stringify(payload)
       });
       if (resp.ok) {
         const result = await resp.json();
         syncBinId = result?.metadata?.id;
-        if (syncBinId) {
-          try { localStorage.setItem('mh_sync_id', syncBinId); } catch(e) {}
-        }
+        if (syncBinId) try { localStorage.setItem('mh_sync_id', syncBinId); } catch(e) {}
       }
     }
-
     if (resp && resp.ok) {
       syncTimer = null;
       const btn = document.getElementById('gist-btn');
@@ -2687,8 +2672,8 @@ async function syncSave() {
       showSyncToast('☁ Lagret til JSONBin');
     } else {
       const errText = resp ? await resp.text() : 'ingen respons';
-      console.error('JSONBin save failed. Status:', resp?.status, 'Body:', errText);
-      showSyncToast(`⚠ Feil ${resp?.status}: ${errText.slice(0,60)}`);
+      console.error('JSONBin save failed:', resp?.status, errText);
+      showSyncToast('⚠ Lagring feilet');
     }
   } catch(e) {
     console.warn('syncSave error:', e);
