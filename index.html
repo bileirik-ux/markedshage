@@ -596,7 +596,7 @@ function syncCropTasks() {
 
 function render() {
   syncCropTasks();
-  saveToLocal();
+  if (!_suppressLocalSave) saveToLocal();
   if (currentTab === 'oversikt')  renderOversikt();
   if (currentTab === 'senger')    renderSenger();
   if (currentTab === 'vekster')   renderVekster();
@@ -2398,7 +2398,9 @@ function importFileObject(file, skipSave = false) {
       }
 
       pendingImport = { crops: newCrops, bedSizes: newBedSizes, bedIDs: newBedIDs, tasks: newTasks };
+      if (skipSave) _suppressLocalSave = true;
       confirmImport(skipSave);
+      _suppressLocalSave = false;
       resolve();
     } catch(err) {
       alert('Kunne ikke lese filen. Kontroller at det er en gyldig Excel-eksport fra denne appen.');
@@ -2533,6 +2535,7 @@ function styleHeaderRow(ws, numCols) {
 
 const GIST_FILENAME = 'markedshage_data.json';
 
+let _suppressLocalSave = false;
 let gistToken     = null;
 let gistId        = null;
 let gistConnected = false;
