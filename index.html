@@ -2549,7 +2549,10 @@ function initSync() {
     syncConnected = !!syncKey;
   } catch(e) {}
   renderSyncBtn();
-  if (syncConnected) syncLoadOnStart();
+  if (syncConnected) {
+    syncLoadOnStart();
+    startSyncPolling();
+  }
 }
 
 function renderSyncBtn() {
@@ -2626,6 +2629,7 @@ function gistSetup() {
     modal.remove();
     renderSyncBtn();
     syncLoadOnStart();
+    startSyncPolling();
   };
 }
 
@@ -2781,6 +2785,22 @@ window.addEventListener('beforeunload', () => {
   if (syncConnected && syncTimer) {
     clearTimeout(syncTimer);
     syncSave();
+  }
+});
+
+// Auto-sync: load from JSONBin when user returns to app
+let syncPollTimer = null;
+function startSyncPolling() {
+  clearInterval(syncPollTimer);
+  syncPollTimer = setInterval(() => {
+    if (syncConnected && document.visibilityState === 'visible') {
+      syncLoadOnStart();
+    }
+  }, 5 * 60 * 1000); // every 5 minutes
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && syncConnected) {
+    syncLoadOnStart();
   }
 });
 
