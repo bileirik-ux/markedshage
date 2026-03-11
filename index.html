@@ -2561,44 +2561,72 @@ function renderSyncBtn() {
 
 // Called when user enters API key
 function gistSetup() {
-  const currentKey = syncKey || '';
-  const currentBin = syncBinId || '';
+  // Remove any existing modal
+  document.getElementById('sync-modal')?.remove();
 
-  const key = prompt(
-    'JSONBin.io API-nøkkel\n\nSlik oppretter du en nøkkel:\n1. Gå til jsonbin.io og opprett en gratis konto\n2. Klikk på "API Keys" i menyen\n3. Kopier "Master Key" og lim inn her:',
-    currentKey
-  );
-  if (!key || !key.trim()) return;
+  const modal = document.createElement('div');
+  modal.id = 'sync-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
 
-  const newKey = key.trim();
-  const keyChanged = newKey !== currentKey;
+  modal.innerHTML = `
+    <div style="background:#1a2e1a;border:1px solid rgba(52,211,153,0.2);border-radius:16px;padding:24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.8)">
+      <h2 style="font-size:16px;color:#6ee7b7;margin-bottom:16px;font-weight:400">☁ JSONBin synkronisering</h2>
 
-  syncKey = newKey;
-  syncConnected = true;
-  try { localStorage.setItem('mh_sync_key', syncKey); } catch(e) {}
+      <label style="display:block;font-size:12px;color:#9ca3af;margin-bottom:6px">
+        Master Key
+        <a href="https://jsonbin.io" target="_blank" style="color:#60a5fa;margin-left:8px;font-size:11px">Hent fra jsonbin.io →</a>
+      </label>
+      <input id="sync-modal-key" type="text" placeholder="$2b$10$..." value="${syncKey||''}"
+        style="width:100%;padding:10px 12px;background:#0d1a0e;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#e8f5e9;font-size:13px;font-family:monospace;margin-bottom:16px;outline:none">
 
-  if (keyChanged) {
-    // New key — ask for existing bin ID or create new
-    const binId = prompt(
-      'Har du allerede en Bin ID fra en annen enhet?\n\nLim inn Bin ID her for å synkronisere med eksisterende data.\nLa feltet stå tomt for å opprette en ny bin.',
-      currentBin
-    );
-    if (binId && binId.trim()) {
-      syncBinId = binId.trim();
+      <label style="display:block;font-size:12px;color:#9ca3af;margin-bottom:6px">
+        Bin ID <span style="color:#6b7280;font-size:11px">(la stå tomt for å opprette ny)</span>
+      </label>
+      <input id="sync-modal-bin" type="text" placeholder="69b16698c3097a1dd517a6bf" value="${syncBinId||''}"
+        style="width:100%;padding:10px 12px;background:#0d1a0e;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#e8f5e9;font-size:13px;font-family:monospace;margin-bottom:8px;outline:none">
+      <p style="font-size:11px;color:#6b7280;margin-bottom:20px">
+        Finn Bin ID i ☁-menyen på en annen enhet, eller på jsonbin.io under Bins.
+      </p>
+
+      <div style="display:flex;gap:10px">
+        <button id="sync-modal-cancel" style="flex:1;padding:11px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#9ca3af;cursor:pointer;font-size:14px">Avbryt</button>
+        <button id="sync-modal-save" style="flex:2;padding:11px;border-radius:8px;border:none;background:#16a34a;color:white;cursor:pointer;font-size:14px;font-weight:500">Koble til</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  document.getElementById('sync-modal-key').focus();
+
+  document.getElementById('sync-modal-cancel').onclick = () => modal.remove();
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+  document.getElementById('sync-modal-save').onclick = () => {
+    const newKey = document.getElementById('sync-modal-key').value.trim();
+    const newBin = document.getElementById('sync-modal-bin').value.trim();
+    if (!newKey) { alert('API-nøkkel er påkrevd'); return; }
+
+    const keyChanged = newKey !== syncKey;
+    const binChanged = newBin !== syncBinId;
+
+    syncKey = newKey;
+    syncConnected = true;
+    try { localStorage.setItem('mh_sync_key', syncKey); } catch(e) {}
+
+    if (newBin) {
+      syncBinId = newBin;
       try { localStorage.setItem('mh_sync_id', syncBinId); } catch(e) {}
-      try { localStorage.removeItem('mh_data'); } catch(e) {}
-      renderSyncBtn();
-      syncLoadOnStart();
-    } else {
+      if (keyChanged || binChanged) {
+        try { localStorage.removeItem('mh_data'); } catch(e) {}
+      }
+    } else if (keyChanged) {
       syncBinId = null;
       try { localStorage.removeItem('mh_sync_id'); localStorage.removeItem('mh_data'); } catch(e) {}
-      renderSyncBtn();
-      syncLoadOnStart();
     }
-  } else {
+
+    modal.remove();
     renderSyncBtn();
     syncLoadOnStart();
-  }
+  };
 }
 
 // On startup: load from JSONBin if no local data
