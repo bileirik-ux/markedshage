@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d1a0e">
 <meta name="description" content="Planleggingsverktøy for markedshage">
@@ -2584,20 +2585,54 @@ function gistSetup() {
 // On startup: load from JSONBin if no local data
 async function syncLoadOnStart() {
   try {
-    const hasLocal = !!localStorage.getItem('mh_data');
-    if (hasLocal) {
-      showSyncToast('☁ Tilkoblet JSONBin');
-      return;
-    }
     if (!syncBinId) {
+      // No bin yet — create one from current local data
       showSyncToast('☁ Oppretter JSONBin...');
       await syncSave();
       return;
     }
-    await syncLoad(false);
+
+    // Fetch remote data and compare timestamps
+    const resp = await fetch(`${JSONBIN_API}/${syncBinId}/latest`, {
+      headers: { 'X-Master-Key': syncKey, 'X-Bin-Meta': 'false' }
+    });
+    if (!resp.ok) {
+      showSyncToast('☁ Tilkoblet (offline)');
+      return;
+    }
+    const remote = await resp.json();
+    if (!remote || !remote.crops) {
+      showSyncToast('☁ Tilkoblet JSONBin');
+      return;
+    }
+
+    // Compare with local timestamp
+    let localSaved = null;
+    try {
+      const raw = localStorage.getItem('mh_data');
+      if (raw) localSaved = JSON.parse(raw).saved || null;
+    } catch(e) {}
+
+    const remoteSaved = remote.saved || null;
+    const remoteIsNewer = !localSaved || (remoteSaved && new Date(remoteSaved) > new Date(localSaved));
+
+    console.log('Local saved:', localSaved, '| Remote saved:', remoteSaved, '| Remote newer:', remoteIsNewer);
+
+    if (remoteIsNewer) {
+      if (remote.crops)   crops    = remote.crops;
+      if (remote.tasks)   tasks    = remote.tasks;
+      if (remote.bedSizes) bedSizes = remote.bedSizes;
+      if (remote.bedIDs && remote.bedIDs.length) BED_IDS = remote.bedIDs;
+      saveToLocal();
+      clearTimeout(syncTimer); syncTimer = null;
+      render();
+      showSyncToast('☁ Lastet inn fra JSONBin');
+    } else {
+      showSyncToast('☁ Tilkoblet JSONBin');
+    }
   } catch(e) {
     console.warn('syncLoadOnStart error:', e);
-    showSyncToast('☁ Frakoblet (prøv igjen senere)');
+    showSyncToast('☁ Tilkoblet (offline)');
   }
 }
 
@@ -2711,7 +2746,7 @@ function gistShowMenu() {
   menu.style.cssText = 'position:fixed;background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:210px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5)';
 
   const items = [
-    { label: '⬇ Last inn fra JSONBin', fn: () => { localStorage.removeItem('mh_data'); syncBinId = localStorage.getItem('mh_sync_id'); syncLoadOnStart(); menu.remove(); } },
+    { label: '⬇ Last inn fra JSONBin', fn: () => { syncLoad(false); menu.remove(); } },
     { label: '⬆ Lagre til JSONBin',   fn: () => { syncSave(); menu.remove(); } },
     { sep: true },
     { label: '🔑 Endre API-nøkkel',    fn: () => { gistSetup(); menu.remove(); } },
