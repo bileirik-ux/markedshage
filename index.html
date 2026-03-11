@@ -2561,25 +2561,44 @@ function renderSyncBtn() {
 
 // Called when user enters API key
 function gistSetup() {
+  const currentKey = syncKey || '';
+  const currentBin = syncBinId || '';
+
   const key = prompt(
-    'JSONBin.io API-nøkkel\n\n' +
-    'Slik oppretter du en nøkkel:\n' +
-    '1. Gå til jsonbin.io og opprett en gratis konto\n' +
-    '2. Klikk på "API Keys" i menyen\n' +
-    '3. Kopier "Master Key" og lim inn her:',
-    syncKey || ''
+    'JSONBin.io API-nøkkel\n\nSlik oppretter du en nøkkel:\n1. Gå til jsonbin.io og opprett en gratis konto\n2. Klikk på "API Keys" i menyen\n3. Kopier "Master Key" og lim inn her:',
+    currentKey
   );
   if (!key || !key.trim()) return;
-  syncKey = key.trim();
-  syncBinId = null;
+
+  const newKey = key.trim();
+  const keyChanged = newKey !== currentKey;
+
+  syncKey = newKey;
   syncConnected = true;
-  try {
-    localStorage.setItem('mh_sync_key', syncKey);
-    localStorage.removeItem('mh_sync_id');
-    localStorage.removeItem('mh_data'); // force load from JSONBin
-  } catch(e) {}
-  renderSyncBtn();
-  syncLoadOnStart();
+  try { localStorage.setItem('mh_sync_key', syncKey); } catch(e) {}
+
+  if (keyChanged) {
+    // New key — ask for existing bin ID or create new
+    const binId = prompt(
+      'Har du allerede en Bin ID fra en annen enhet?\n\nLim inn Bin ID her for å synkronisere med eksisterende data.\nLa feltet stå tomt for å opprette en ny bin.',
+      currentBin
+    );
+    if (binId && binId.trim()) {
+      syncBinId = binId.trim();
+      try { localStorage.setItem('mh_sync_id', syncBinId); } catch(e) {}
+      try { localStorage.removeItem('mh_data'); } catch(e) {}
+      renderSyncBtn();
+      syncLoadOnStart();
+    } else {
+      syncBinId = null;
+      try { localStorage.removeItem('mh_sync_id'); localStorage.removeItem('mh_data'); } catch(e) {}
+      renderSyncBtn();
+      syncLoadOnStart();
+    }
+  } else {
+    renderSyncBtn();
+    syncLoadOnStart();
+  }
 }
 
 // On startup: load from JSONBin if no local data
@@ -2748,6 +2767,8 @@ function gistShowMenu() {
   const items = [
     { label: '⬇ Last inn fra JSONBin', fn: () => { syncLoad(false); menu.remove(); } },
     { label: '⬆ Lagre til JSONBin',   fn: () => { syncSave(); menu.remove(); } },
+    { sep: true },
+    { label: `📋 Bin ID: ${syncBinId ? syncBinId.slice(0,12)+'…' : 'ingen'}`, fn: () => { navigator.clipboard?.writeText(syncBinId||''); showSyncToast('📋 Bin ID kopiert!'); menu.remove(); } },
     { sep: true },
     { label: '🔑 Endre API-nøkkel',    fn: () => { gistSetup(); menu.remove(); } },
     { label: '🔓 Koble fra',           fn: () => { syncDisconnect(); menu.remove(); }, color: '#f87171' },
