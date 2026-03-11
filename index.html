@@ -1982,19 +1982,28 @@ let modusNotes    = {};  // cropId -> edited notes
 let modusSitat    = null; // persists until guide is closed
 
 const SITATER_SAA = [
-  { tekst: 'Den som sår sparsomt, skal høste sparsomt, og den som sår rikelig, skal høste rikelig.', kilde: '2 Kor 9,6', oversettelse: 'N11BM' },
-  { tekst: 'Så lenge jorden består, skal det aldri ta slutt med såtid og høsttid.', kilde: '1 Mos 8,22', oversettelse: 'N11BM' },
-  { tekst: 'De som sår med tårer, skal høste med jubel.', kilde: 'Sal 126,5', oversettelse: 'N11BM' },
-  { tekst: 'Så ditt korn om morgenen, og la ikke hånden hvile om kvelden.', kilde: 'Fork 11,6', oversettelse: 'N11BM' },
-  { tekst: 'Jeg plantet, Apollos vannet, men Gud gav vekst.', kilde: '1 Kor 3,6', oversettelse: 'N11BM' },
+  { tekst: 'Så lenge jorden består, skal det ikke mangle såtid og høsttid, kulde og varme, sommer og vinter, dag og natt', kilde: '1. Mosebok 8' },
+  { tekst: 'De som sår med tårer, skal høste med jubel. Gråtende går de ut og bærer sitt såkorn, med jubel kommer de tilbake og bærer sine kornbånd.', kilde: 'Salme 126' },
+  { tekst: 'Så ditt frø om morgenen, og la ikke hånden hvile om kvelden. For du vet ikke om det ene eller det andre vil lykkes, eller om begge vil bli like bra.', kilde: 'Forkynneren 11' },
+  { tekst: 'Han skjøt opp som en spire for hans ansikt, som et rotskudd av tørr jord. Han hadde ingen herlig skikkelse vi kunne se på, ikke et utseende vi kunne glede oss over.', kilde: 'Jesaja 53' },
+  { tekst: 'For lik regn og snø som faller fra himmelen og ikke vender tilbake dit uten å ha vannet jorden, gjort den fruktbar og fått den til å spire, gitt såkorn til den som skal så og brød til den som skal spise – slik er mitt ord som går ut av min munn: Det vender ikke tomt tilbake til meg, men gjør det jeg vil og fullfører det jeg sender det til.', kilde: 'Jesaja 55' },
+  { tekst: 'Så rettferdighet, høst kjærlighet! Bryt opp den ubearbeidede jord! Det er tid til å søke Herren til han kommer og lar rettferd regne over dere', kilde: 'Hosea 10' },
+  { tekst: 'En såmann gikk ut for å så. Og da han sådde, falt noe ved veien, og fuglene kom og tok det. Noe falt på steingrunn hvor det var lite jord, og det skjøt straks i været fordi jordlaget var tynt. Men da solen steg, ble det svidd og visnet fordi det ikke hadde fått slå rot. Noe falt blant tornebusker, og tornebuskene vokste opp og kvalte det. Men noe falt i god jord og bar frukt: noe hundre, noe seksti, noe tretti ganger det som ble sådd.', kilde: 'Matteus 13' },
+  { tekst: 'Slik er det med Guds rike: En mann har sådd korn i jorden. Han sover og står opp, det blir natt og det blir dag, og kornet spirer og vokser opp; hvordan det går til, vet han ikke. Av seg selv gir jorden grøde: først strå, så aks og til sist modent korn i akset. Så snart grøden er moden, svinger han sigden; for høsten er kommet.', kilde: 'Markus 4' },
+  { tekst: 'Himmelriket er likt et sennepsfrø som en mann tok og sådde i åkeren sin. Det er mindre enn alle andre frø, men når det er blitt stort, er det større enn hagevekstene og blir til et tre, så fuglene under himmelen kommer og bygger rede i grenene.', kilde: 'Matteus 13' },
+  { tekst: 'Himmelriket er likt en mann som sådde godt korn i åkeren sin. Men mens alle sov, kom fienden hans og sådde ugress blant hveten, og gikk sin vei. [...] La begge gro til høsten.', kilde: 'Matteus 13' },
 ];
 
 const SITATER_PLANT = [
-  { tekst: 'Herren Gud plantet en hage i Eden i øst, og der satte han mannen som han hadde formet.', kilde: '1 Mos 2,8', oversettelse: 'N11BM' },
-  { tekst: 'De skal bygge hus og bo i dem, de skal plante vingårder og spise frukten av dem.', kilde: 'Jes 65,21', oversettelse: 'N11BM' },
-  { tekst: 'Salig er den mannen... Han er lik et tre, plantet ved rennende vann.', kilde: 'Sal 1,1.3', oversettelse: 'N11BM' },
-  { tekst: 'Plant hager og spis frukten av dem.', kilde: 'Jer 29,5', oversettelse: 'N11BM' },
-  { tekst: 'Det er en tid for alt... en tid til å plante og en tid til å rykke opp det som er plantet.', kilde: 'Fork 3,1-2', oversettelse: 'N11BM' },
+  { tekst: 'Gud sa: Jorden skal bli grønn! Grønne vekster skal gro på jorden. Og Gud så at det var godt.', kilde: '1. Mosebok 1' },
+  { tekst: 'Og Gud sa: Se, jeg gir dere alle planter som setter frø, alle som finnes på hele jorden.', kilde: '1. Mos 1,29' },
+  { tekst: 'Herren Gud plantet en hage i Eden i øst og satte der mennesket han hadde skapt.', kilde: '1. Mosebok 2' },
+  { tekst: 'Det er en tid for alt. En tid til å plante og en tid til å rykke opp det som er plantet.', kilde: 'Forkynneren 3' },
+  { tekst: 'Derfor er de ikke noe, verken den som planter eller den som vanner. Bare Gud er noe, han som gir vekst.', kilde: '1. Korinterbrev 3' },
+  { tekst: 'Din dåre! Det du sår gir ikke liv uten at det dør.', kilde: '1. Korinterbrev 15' },
+  { tekst: 'Den som sår sparsomt, skal høste sparsomt, og den som sår med velsignelse, skal høste med velsignelse.', kilde: '2. Korinterbrev 9' },
+  { tekst: 'Det et menneske sår, skal det også høste. Den som sår i sitt eget kjøtt, høster fordervelse av kjøttet; men den som sår i Ånden, høster evig liv av Ånden.', kilde: 'Galaterbrevet 6' },
+  { tekst: 'Du skal også holde festen for kornhøsten, når du høster inn førstegrøden av det du sådde på marken, og innhøstingsfesten ved utgangen av året, når du høster inn frukten av arbeidet ditt på marken.', kilde: '2. Mosebok 23' },
 ];
 
 function modusSetToday() {
@@ -2051,7 +2060,7 @@ function renderModus() {
   const header = '<div style="font-size:13px;color:#6b7280;margin-bottom:14px">'+title+'</div>'
     +'<div style="text-align:center;margin-bottom:22px;padding:0 4px">'
     +'<div style="font-size:17px;color:#d1fae5;line-height:1.7;font-style:italic">«'+sitat.tekst+'»</div>'
-    +'<div style="font-size:13px;color:#6b7280;margin-top:8px">['+sitat.kilde+' fra '+sitat.oversettelse+']</div>'
+    +'<div style="font-size:13px;color:#6b7280;margin-top:8px">— '+sitat.kilde+'</div>'
     +'</div>'
     +'<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;padding:14px;border-radius:12px;background:'+accentBg+';border:1px solid '+accentBorder+'">'
     +'<span style="font-size:40px">'+crop.emoji+'</span>'
@@ -2638,8 +2647,7 @@ async function syncLoadOnStart() {
   try {
     if (!syncBinId) {
       // No bin yet — create one from current local data
-      showSyncToast('☁ Oppretter JSONBin...');
-      await syncSave();
+            await syncSave();
       return;
     }
 
@@ -2648,13 +2656,11 @@ async function syncLoadOnStart() {
       headers: { 'X-Master-Key': syncKey, 'X-Bin-Meta': 'false', 'Cache-Control': 'no-store' }, cache: 'no-store'
     });
     if (!resp.ok) {
-      showSyncToast('☁ Tilkoblet (offline)');
-      return;
+            return;
     }
     const remote = await resp.json();
     if (!remote || !remote.crops) {
-      showSyncToast('☁ Tilkoblet JSONBin');
-      return;
+            return;
     }
 
     // Compare with local timestamp
@@ -2677,14 +2683,11 @@ async function syncLoadOnStart() {
       saveToLocal();
       clearTimeout(syncTimer); syncTimer = null;
       render();
-      showSyncToast('☁ Lastet inn fra JSONBin');
-    } else {
-      showSyncToast('☁ Tilkoblet JSONBin');
-    }
+          } else {
+          }
   } catch(e) {
     console.warn('syncLoadOnStart error:', e);
-    showSyncToast('☁ Tilkoblet (offline)');
-  }
+      }
 }
 
 // Load data from JSONBin and import it
@@ -2701,8 +2704,7 @@ async function syncLoad(silent = false) {
     }
     const data = await resp.json();
     if (!data || !data.crops) {
-      if (!silent) showSyncToast('☁ JSONBin er tom');
-      return false;
+            return false;
     }
     // Load data directly — no Excel parsing needed
     if (data.crops)   crops    = data.crops;
@@ -2712,8 +2714,7 @@ async function syncLoad(silent = false) {
     saveToLocal();
     clearTimeout(syncTimer); syncTimer = null;
     render();
-    if (!silent) showSyncToast('☁ Lastet inn fra JSONBin');
-    return true;
+    if (!silent)     return true;
   } catch(e) {
     console.warn('syncLoad error:', e);
     if (!silent) showSyncToast('⚠ Feil ved innlasting');
@@ -2758,8 +2759,7 @@ async function syncSave() {
       syncTimer = null;
       const btn = document.getElementById('gist-btn');
       if (btn) { btn.style.color = '#34d399'; btn.title = 'JSONBin synkronisering – tilkoblet'; }
-      showSyncToast('☁ Lagret til JSONBin');
-    } else {
+          } else {
       const errText = resp ? await resp.text() : 'ingen respons';
       console.error('JSONBin save failed:', resp?.status, errText);
       showSyncToast('⚠ Lagring feilet');
@@ -2859,8 +2859,7 @@ function syncDisconnect() {
     localStorage.removeItem('mh_sync_id');
   } catch(e) {}
   renderSyncBtn();
-  showSyncToast('Koblet fra JSONBin');
-}
+  }
 
 function showSyncToast(msg) {
   let t = document.getElementById('sync-toast');
