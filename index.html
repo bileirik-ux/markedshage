@@ -2640,7 +2640,7 @@ async function syncLoadOnStart() {
     }
 
     // Fetch remote data and compare timestamps
-    const resp = await fetch(`${JSONBIN_API}/${syncBinId}/latest`, {
+    const resp = await fetch(`${JSONBIN_API}/${syncBinId}/latest?t=${Date.now()}`, {
       headers: { 'X-Master-Key': syncKey, 'X-Bin-Meta': 'false' }
     });
     if (!resp.ok) {
@@ -2687,7 +2687,7 @@ async function syncLoadOnStart() {
 async function syncLoad(silent = false) {
   if (!syncKey || !syncBinId) return false;
   try {
-    const resp = await fetch(`${JSONBIN_API}/${syncBinId}/latest`, {
+    const resp = await fetch(`${JSONBIN_API}/${syncBinId}/latest?t=${Date.now()}`, {
       headers: { 'X-Master-Key': syncKey, 'X-Bin-Meta': 'false' }
     });
     if (!resp.ok) {
@@ -2798,7 +2798,7 @@ function gistShowMenu() {
     { sep: true },
     { label: '🔍 Debug synk', fn: async () => {
         menu.remove();
-        const resp = await fetch(`${JSONBIN_API}/${syncBinId}/latest`, {headers:{'X-Master-Key':syncKey,'X-Bin-Meta':'false'}});
+        const resp = await fetch(`${JSONBIN_API}/${syncBinId}/latest?t=${Date.now()}`, {headers:{'X-Master-Key':syncKey,'X-Bin-Meta':'false'}});
         const d = await resp.json();
         const localRaw = localStorage.getItem('mh_data');
         const localSaved = localRaw ? JSON.parse(localRaw).saved : 'ingen';
