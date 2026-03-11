@@ -2796,7 +2796,14 @@ function gistShowMenu() {
     { label: '⬇ Last inn fra JSONBin', fn: () => { syncLoad(false); menu.remove(); } },
     { label: '⬆ Lagre til JSONBin',   fn: () => { syncSave(); menu.remove(); } },
     { sep: true },
-    { label: `📋 Bin ID: ${syncBinId ? syncBinId.slice(0,12)+'…' : 'ingen'}`, fn: () => { navigator.clipboard?.writeText(syncBinId||''); showSyncToast('📋 Bin ID kopiert!'); menu.remove(); } },
+    { label: '🔍 Debug synk', fn: async () => {
+        menu.remove();
+        const resp = await fetch(`${JSONBIN_API}/${syncBinId}/latest`, {headers:{'X-Master-Key':syncKey,'X-Bin-Meta':'false'}});
+        const d = await resp.json();
+        const localRaw = localStorage.getItem('mh_data');
+        const localSaved = localRaw ? JSON.parse(localRaw).saved : 'ingen';
+        alert(`LOKAL:\n  Vekster: ${crops.length}\n  Lagret: ${localSaved}\n\nJSONBIN:\n  Vekster: ${d?.crops?.length ?? '?'}\n  Lagret: ${d?.saved ?? '?'}`);
+      }},
     { sep: true },
     { label: '🔑 Endre API-nøkkel',    fn: () => { gistSetup(); menu.remove(); } },
     { label: '🔓 Koble fra',           fn: () => { syncDisconnect(); menu.remove(); }, color: '#f87171' },

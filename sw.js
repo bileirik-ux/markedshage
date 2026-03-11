@@ -1,4 +1,4 @@
-const CACHE = 'markedshage-v45';
+const CACHE = 'markedshage-v46';
 const ASSETS = [
   '/markedshage/',
   '/markedshage/index.html',
