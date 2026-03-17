@@ -16,44 +16,86 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
+
+  :root {
+    --bg-main: #0d1a0e;
+    --bg-grad: linear-gradient(135deg, #0d1a0e 0%, #1a2e1b 40%, #0d1a0e 100%);
+    --bg-header: rgba(13,26,14,0.92);
+    --bg-nav: rgba(13,26,14,0.98);
+    --bg-card: rgba(255,255,255,0.04);
+    --bg-input: rgba(255,255,255,0.06);
+    --bg-modal: #1a2e1b;
+    --border: rgba(255,255,255,0.08);
+    --border-accent: rgba(52,211,153,0.15);
+    --text-main: #e8f5e9;
+    --text-head: #d1fae5;
+    --text-muted: #6b7280;
+    --text-dim: #4b5563;
+    --accent: #34d399;
+    --accent-soft: #6ee7b7;
+    --accent-bg: rgba(52,211,153,0.12);
+    --task-bg: rgba(255,255,255,0.05);
+    --task-border: rgba(255,255,255,0.07);
+  }
+  body.light {
+    --bg-main: #f0f7f0;
+    --bg-grad: linear-gradient(135deg, #e8f5e9 0%, #f0faf0 40%, #e8f5e9 100%);
+    --bg-header: rgba(240,247,240,0.95);
+    --bg-nav: rgba(240,247,240,0.98);
+    --bg-card: rgba(255,255,255,0.7);
+    --bg-input: rgba(255,255,255,0.8);
+    --bg-modal: #f5fbf5;
+    --border: rgba(0,0,0,0.08);
+    --border-accent: rgba(22,163,74,0.2);
+    --text-main: #1a3a1e;
+    --text-head: #14532d;
+    --text-muted: #4b7a52;
+    --text-dim: #6b9e72;
+    --accent: #16a34a;
+    --accent-soft: #15803d;
+    --accent-bg: rgba(22,163,74,0.1);
+    --task-bg: rgba(255,255,255,0.6);
+    --task-border: rgba(0,0,0,0.07);
+  }
+
   body {
     min-height: 100vh;
-    background: linear-gradient(135deg, #0d1a0e 0%, #1a2e1b 40%, #0d1a0e 100%) fixed;
+    background: var(--bg-grad) fixed;
     background-size: 100% 100%;
     font-family: Georgia, 'Times New Roman', serif;
-    color: #e8f5e9;
+    color: var(--text-main);
     overflow-x: hidden;
   }
 
   /* HEADER */
   header {
     position: sticky; top: 0; z-index: 50;
-    background: rgba(13,26,14,0.92);
+    background: var(--bg-header);
     backdrop-filter: blur(12px);
     padding: 14px 16px 14px;
     border-bottom: 1px solid rgba(52,211,153,0.1);
   }
   .header-top { margin-bottom: 0; }
   .header-eyebrow { font-size: 10px; letter-spacing: 0.3em; color: #6ee7b7; text-transform: uppercase; margin-bottom: 2px; }
-  h1 { font-size: 20px; font-weight: 400; color: #d1fae5; }
+  h1 { font-size: 20px; font-weight: 400; color: var(--text-head); }
 
   /* BOTTOM NAV */
   #bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-    background: rgba(13,26,14,0.98);
+    background: var(--bg-nav);
     backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(52,211,153,0.15);
+    border-top: 1px solid var(--border-accent);
     display: flex;
     padding-bottom: env(safe-area-inset-bottom);
   }
   .tab-btn {
     flex: 1; min-width: 0; padding: 20px 2px 18px;
     border: none; background: transparent;
-    color: #4b5563; font-size: 13px; font-weight: 600; font-family: inherit;
+    color: var(--text-dim); font-size: 13px; font-weight: 600; font-family: inherit;
     cursor: pointer; border-top: 3px solid transparent;
     transition: all 0.2s; letter-spacing: 0.04em;
   }
-  .tab-btn.active { color: #6ee7b7; border-top-color: #34d399; }
+  .tab-btn.active { color: var(--accent-soft); border-top-color: var(--accent); }
 
   /* MAIN */
   main { padding: 16px; max-width: 600px; margin: 0 auto; padding-bottom: 110px; }
@@ -61,8 +103,8 @@
   /* STAT CARDS */
   .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
   .stat-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 14px; padding: 14px 16px;
   }
   .stat-icon { font-size: 20px; margin-bottom: 6px; }
@@ -71,11 +113,11 @@
 
   /* CARDS */
   .card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 14px; padding: 16px; margin-bottom: 14px;
   }
-  .card-title { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: #6ee7b7; margin-bottom: 12px; }
+  .card-title { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent-soft); margin-bottom: 12px; }
 
   /* LIST ROWS */
   .list-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -106,10 +148,10 @@
   }
 
   /* end removed */
-  .crop-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+  .crop-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
   .crop-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
   .crop-info { display: flex; gap: 10px; align-items: center; }
-  .crop-name { font-size: 15px; color: #d1fae5; }
+  .crop-name { font-size: 15px; color: var(--text-head); }
   .crop-family { font-size: 11px; color: #6b7280; }
   .crop-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; color: #6b7280; margin-bottom: 10px; }
   .crop-meta span { color: #d1fae5; }
@@ -122,16 +164,16 @@
   .filter-bar { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 14px; }
   .filter-bar::-webkit-scrollbar { display: none; }
   .filter-btn { flex-shrink: 0; padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #6b7280; cursor: pointer; font-size: 11px; font-family: inherit; transition: all 0.15s; }
-  .filter-btn.active { border-color: #34d399; background: rgba(52,211,153,0.12); color: #6ee7b7; }
+  .filter-btn.active { border-color: var(--accent); background: var(--accent-bg); color: var(--accent-soft); }
 
   /* TASKS */
   .task-section { margin-bottom: 20px; }
   .task-priority-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; }
-  .task-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; margin-bottom: 7px; transition: opacity 0.2s; }
+  .task-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--task-bg); border: 1px solid var(--task-border); border-radius: 10px; margin-bottom: 7px; transition: opacity 0.2s; }
   .task-row.done { opacity: 0.45; }
   .check-btn { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.2); background: transparent; cursor: pointer; flex-shrink: 0; font-size: 13px; display: flex; align-items: center; justify-content: center; color: #0d1a0e; transition: all 0.15s; }
-  .check-btn.checked { background: #34d399; border-color: #34d399; }
-  .task-text { flex: 1; font-size: 13px; color: #d1fae5; }
+  .check-btn.checked { background: var(--accent); border-color: var(--accent); }
+  .task-text { flex: 1; font-size: 13px; color: var(--text-head); }
   .task-row.done .task-text { text-decoration: line-through; }
   .task-date { font-size: 11px; color: #6b7280; margin-top: 2px; }
   .delete-btn { background: none; border: none; color: #374151; cursor: pointer; font-size: 20px; padding: 0 4px; line-height: 1; }
@@ -139,18 +181,18 @@
   /* BUTTONS */
   .add-btn {
     width: 100%; padding: 13px; border-radius: 12px;
-    border: 1px solid #34d399; background: rgba(52,211,153,0.12);
-    color: #6ee7b7; cursor: pointer; font-size: 14px; font-family: inherit;
+    border: 1px solid var(--accent); background: var(--accent-bg);
+    color: var(--accent-soft); cursor: pointer; font-size: 14px; font-family: inherit;
     margin-bottom: 16px; transition: background 0.15s;
   }
   .add-btn:active { background: rgba(52,211,153,0.22); }
 
   /* MODAL */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
-  .modal { background: #1a2e1b; border: 1px solid rgba(52,211,153,0.3); border-radius: 20px 20px 0 0; padding: 24px 20px 36px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
-  .modal-title { font-size: 17px; font-weight: 400; color: #6ee7b7; margin-bottom: 18px; }
+  .modal { background: var(--bg-modal); border: 1px solid rgba(52,211,153,0.3); border-radius: 20px 20px 0 0; padding: 24px 20px 36px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-size: 17px; font-weight: 400; color: var(--accent-soft); margin-bottom: 18px; }
   .field-label { font-size: 10px; color: #6b7280; display: block; margin-bottom: 4px; letter-spacing: 0.1em; text-transform: uppercase; }
-  .field-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 12px; color: #d1fae5; font-size: 15px; font-family: inherit; }
+  .field-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: #d1fae5; font-size: 15px; font-family: inherit; }
   .field-input:focus { outline: none; border-color: rgba(52,211,153,0.4); }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   .form-full { margin-bottom: 12px; }
@@ -426,6 +468,10 @@ let selectedBed = null;
 let cropFilter = "alle";
 let cropSearch = "";
 let expandedCrops = new Set();
+let focusTaskIds  = new Set();   // tasks pinned to focus modal
+let taskOrder     = {};          // priority -> [id, id, ...] custom order
+let currentTheme  = 'dark';      // 'dark' or 'light'
+let gardenMap     = null;        // { elements: [...] } for garden map
 let cropSortField = localStorage.getItem('mh_sort_field') || 'name';
 let cropSortDir   = localStorage.getItem('mh_sort_dir')   || 'asc';
 let newPriority = "middels";
@@ -757,14 +803,234 @@ function calcValue(crop) {
   return Math.round(calcPlants(crop) * (crop.weightG / 1000) * crop.pricePerKg);
 }
 
+
+// ════════════════════════════════════════════════════════════════
+// HAGE-KART
+// ════════════════════════════════════════════════════════════════
+function saveGardenMap() {
+  try { localStorage.setItem('mh_garden_map', JSON.stringify(gardenMap)); } catch(e) {}
+}
+
+function openGardenMap() {
+  const modal = document.createElement('div');
+  modal.id = 'garden-map-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;display:flex;flex-direction:column';
+
+  const cropOptions = crops.map(c => `<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
+
+  modal.innerHTML = `
+    <div style="background:var(--bg-header);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-accent)">
+      <div style="font-size:16px;color:var(--accent-soft)">🗺 Hagekart</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="map-tool" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);font-size:12px;font-family:inherit">
+          <option value="rect">▭ Rektangel</option>
+          <option value="free">✏️ Frihånd</option>
+          <option value="select">↖ Velg</option>
+          <option value="delete">🗑 Slett</option>
+        </select>
+        <button onclick="clearGardenMap()" style="padding:6px 12px;border-radius:8px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.1);color:#f87171;cursor:pointer;font-size:12px;font-family:inherit">Nullstill</button>
+        <button onclick="document.getElementById('garden-map-modal').remove()" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit">Lukk</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:hidden;position:relative">
+      <canvas id="garden-canvas" style="display:block;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas>
+    </div>
+    <div id="map-crop-panel" style="display:none;background:var(--bg-modal);border-top:1px solid var(--border-accent);padding:12px 16px">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Tildel vekst til valgt seng:</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="map-crop-select" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);font-size:13px;font-family:inherit">
+          <option value="">— Ingen vekst —</option>
+          ${cropOptions}
+        </select>
+        <button onclick="assignCropToMapBed()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent-soft);cursor:pointer;font-size:13px;font-family:inherit">Tilordne</button>
+        <button id="map-label-btn" onclick="renameMapBed()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:13px;font-family:inherit">Gi navn</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  initGardenCanvas();
+}
+
+let mapCanvas, mapCtx, mapDrawing = false, mapStart = {x:0,y:0}, mapSelected = null, mapFreePoints = [];
+const MAP_COLORS = ['#34d399','#60a5fa','#f87171','#fbbf24','#a78bfa','#fb923c','#f472b6','#4ade80'];
+
+function initGardenCanvas() {
+  mapCanvas = document.getElementById('garden-canvas');
+  mapCtx = mapCanvas.getContext('2d');
+  resizeMapCanvas();
+  window.addEventListener('resize', resizeMapCanvas);
+  drawGardenMap();
+
+  mapCanvas.addEventListener('pointerdown', mapPointerDown);
+  mapCanvas.addEventListener('pointermove', mapPointerMove);
+  mapCanvas.addEventListener('pointerup', mapPointerUp);
+}
+
+function resizeMapCanvas() {
+  if (!mapCanvas) return;
+  const rect = mapCanvas.parentElement.getBoundingClientRect();
+  mapCanvas.width = rect.width;
+  mapCanvas.height = rect.height;
+  drawGardenMap();
+}
+
+function getMapPos(e) {
+  const rect = mapCanvas.getBoundingClientRect();
+  return { x: (e.clientX - rect.left) * (mapCanvas.width / rect.width),
+           y: (e.clientY - rect.top)  * (mapCanvas.height / rect.height) };
+}
+
+function mapPointerDown(e) {
+  e.preventDefault();
+  const pos = getMapPos(e);
+  const tool = document.getElementById('map-tool').value;
+  if (!gardenMap) gardenMap = { elements: [] };
+
+  if (tool === 'select' || tool === 'delete') {
+    mapSelected = null;
+    for (let i = gardenMap.elements.length - 1; i >= 0; i--) {
+      const el = gardenMap.elements[i];
+      if (el.type === 'rect') {
+        if (pos.x >= el.x && pos.x <= el.x+el.w && pos.y >= el.y && pos.y <= el.y+el.h) {
+          if (tool === 'delete') { gardenMap.elements.splice(i,1); saveGardenMap(); drawGardenMap(); return; }
+          mapSelected = i;
+          document.getElementById('map-crop-panel').style.display = 'block';
+          const sel = document.getElementById('map-crop-select');
+          sel.value = el.cropId || '';
+          break;
+        }
+      }
+    }
+    if (mapSelected === null) document.getElementById('map-crop-panel').style.display = 'none';
+    drawGardenMap();
+    return;
+  }
+
+  mapDrawing = true;
+  mapStart = pos;
+  if (tool === 'free') mapFreePoints = [pos];
+}
+
+function mapPointerMove(e) {
+  if (!mapDrawing) return;
+  e.preventDefault();
+  const pos = getMapPos(e);
+  const tool = document.getElementById('map-tool').value;
+  drawGardenMap();
+  mapCtx.strokeStyle = 'var(--accent)';
+  mapCtx.lineWidth = 2;
+  mapCtx.setLineDash([4,4]);
+  if (tool === 'rect') {
+    mapCtx.strokeRect(mapStart.x, mapStart.y, pos.x-mapStart.x, pos.y-mapStart.y);
+  } else if (tool === 'free') {
+    mapFreePoints.push(pos);
+    mapCtx.beginPath();
+    mapFreePoints.forEach((p,i) => i===0 ? mapCtx.moveTo(p.x,p.y) : mapCtx.lineTo(p.x,p.y));
+    mapCtx.stroke();
+  }
+  mapCtx.setLineDash([]);
+}
+
+function mapPointerUp(e) {
+  if (!mapDrawing) return;
+  mapDrawing = false;
+  const pos = getMapPos(e);
+  const tool = document.getElementById('map-tool').value;
+  if (!gardenMap) gardenMap = { elements: [] };
+  const colorIdx = gardenMap.elements.length % MAP_COLORS.length;
+
+  if (tool === 'rect') {
+    const w = pos.x - mapStart.x, h = pos.y - mapStart.y;
+    if (Math.abs(w) < 10 || Math.abs(h) < 10) return;
+    gardenMap.elements.push({ type:'rect', x:Math.min(mapStart.x,pos.x), y:Math.min(mapStart.y,pos.y),
+      w:Math.abs(w), h:Math.abs(h), color:MAP_COLORS[colorIdx], label:'Seng '+(gardenMap.elements.length+1), cropId:'' });
+  } else if (tool === 'free' && mapFreePoints.length > 3) {
+    gardenMap.elements.push({ type:'free', points:mapFreePoints, color:MAP_COLORS[colorIdx], label:'Seng '+(gardenMap.elements.length+1), cropId:'' });
+  }
+  saveGardenMap();
+  drawGardenMap();
+}
+
+function drawGardenMap() {
+  if (!mapCtx) return;
+  mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+
+  // Grid
+  mapCtx.strokeStyle = 'rgba(128,128,128,0.1)';
+  mapCtx.lineWidth = 1;
+  for (let x = 0; x < mapCanvas.width; x += 40) { mapCtx.beginPath(); mapCtx.moveTo(x,0); mapCtx.lineTo(x,mapCanvas.height); mapCtx.stroke(); }
+  for (let y = 0; y < mapCanvas.height; y += 40) { mapCtx.beginPath(); mapCtx.moveTo(0,y); mapCtx.lineTo(mapCanvas.width,y); mapCtx.stroke(); }
+
+  if (!gardenMap) return;
+  gardenMap.elements.forEach((el, i) => {
+    const isSelected = i === mapSelected;
+    mapCtx.strokeStyle = isSelected ? '#ffffff' : el.color;
+    mapCtx.lineWidth = isSelected ? 2.5 : 1.5;
+    mapCtx.fillStyle = el.color + '33';
+    mapCtx.setLineDash(isSelected ? [5,3] : []);
+
+    if (el.type === 'rect') {
+      mapCtx.fillRect(el.x, el.y, el.w, el.h);
+      mapCtx.strokeRect(el.x, el.y, el.w, el.h);
+      // Label
+      mapCtx.setLineDash([]);
+      mapCtx.fillStyle = el.color;
+      mapCtx.font = 'bold 11px Georgia';
+      mapCtx.fillText(el.label, el.x+5, el.y+14);
+      if (el.cropId) {
+        const crop = crops.find(c => c.id == el.cropId);
+        if (crop) {
+          mapCtx.font = '13px Georgia';
+          mapCtx.fillStyle = '#ffffff';
+          mapCtx.fillText(crop.emoji+' '+crop.name, el.x+5, el.y+el.h/2+6);
+        }
+      }
+    } else if (el.type === 'free' && el.points.length > 1) {
+      mapCtx.beginPath();
+      el.points.forEach((p,j) => j===0 ? mapCtx.moveTo(p.x,p.y) : mapCtx.lineTo(p.x,p.y));
+      mapCtx.closePath();
+      mapCtx.fill();
+      mapCtx.stroke();
+      mapCtx.setLineDash([]);
+      mapCtx.fillStyle = el.color;
+      mapCtx.font = 'bold 11px Georgia';
+      mapCtx.fillText(el.label, el.points[0].x+5, el.points[0].y+14);
+    }
+    mapCtx.setLineDash([]);
+  });
+}
+
+function assignCropToMapBed() {
+  if (mapSelected === null || !gardenMap) return;
+  const cropId = document.getElementById('map-crop-select').value;
+  gardenMap.elements[mapSelected].cropId = cropId ? +cropId : '';
+  saveGardenMap();
+  drawGardenMap();
+}
+
+function renameMapBed() {
+  if (mapSelected === null || !gardenMap) return;
+  const el = gardenMap.elements[mapSelected];
+  const name = prompt('Gi navn til seng:', el.label);
+  if (name) { el.label = name; saveGardenMap(); drawGardenMap(); }
+}
+
+function clearGardenMap() {
+  if (!confirm('Nullstille kartet?')) return;
+  gardenMap = { elements: [] };
+  saveGardenMap();
+  drawGardenMap();
+}
+
 function renderSenger() {
   const fields = ['alle', ...new Set(BED_IDS.map(id => id.match(/^([A-Za-z]+)/)?.[1] || id))].sort((a,b) => a==='alle'?-1:b==='alle'?1:a.localeCompare(b));
   const visibleBeds = bedFieldFilter === 'alle' ? BED_IDS : BED_IDS.filter(id => (id.match(/^([A-Za-z]+)/)?.[1] || '') === bedFieldFilter);
 
   document.getElementById('tab-senger').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <h2 style="font-size:16px;font-weight:400;color:#d1fae5;margin:0">Sengekart (${BED_IDS.length} senger)</h2>
+      <h2 style="font-size:16px;font-weight:400;color:var(--text-head);margin:0">Sengekart (${BED_IDS.length} senger)</h2>
       <div style="display:flex;gap:8px">
+        <button onclick="openGardenMap()" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.1);color:#60a5fa;cursor:pointer;font-size:12px;font-family:inherit">🗺 Kart</button>
         <button onclick="openAddBed()" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(52,211,153,0.4);background:rgba(52,211,153,0.1);color:#6ee7b7;cursor:pointer;font-size:12px;font-family:inherit">+ Legg til seng</button>
       </div>
     </div>
@@ -1018,7 +1284,7 @@ function renderVekster() {
       const s = STATUS[c.status];
       const plantCount = calcPlants(c);
       const isExpanded = expandedCrops.has(c.id);
-      return `<div class="crop-card">
+      return `<div class="crop-card" onclick="toggleCropExpand(${c.id})" style="cursor:pointer">
         <div class="crop-header">
           <div class="crop-info">
             <span style="font-size:26px">${c.emoji}</span>
@@ -1060,10 +1326,9 @@ function renderVekster() {
         ${c.plantLog ? `<div class="crop-notes">🪴 Plantelogg: ${c.plantLog}</div>` : ''}
         ${c.notes ? `<div class="crop-notes">📝 ${c.notes}</div>` : ''}
         ` : ''}
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button onclick="openEditCrop(${c.id})" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:20px;color:#9ca3af;cursor:pointer;padding:8px;font-size:13px;font-family:inherit">✏️ Rediger</button>
-          <button onclick="toggleCropExpand(${c.id})" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:20px;color:#9ca3af;cursor:pointer;padding:8px;font-size:13px;font-family:inherit">${isExpanded ? '▲ Vis mindre' : '▼ Vis mer'}</button>
-        </div>
+        ${isExpanded ? `<div style="display:flex;gap:8px;margin-top:8px">
+          <button onclick="event.stopPropagation();openEditCrop(${c.id})" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:20px;color:#9ca3af;cursor:pointer;padding:8px;font-size:13px;font-family:inherit">✏️ Rediger</button>
+        </div>` : ''}
       </div>`;
     }).join('')}
     ${filtered.length===0?'<p style="color:#6b7280;font-size:13px;text-align:center;padding:20px 0">Ingen vekster i denne kategorien</p>':''}`;
@@ -1224,13 +1489,23 @@ function clearSearch() {
 }
 
 function onSearchInput() {
-  cropSearch = document.getElementById('search-input')?.value || '';
-  renderVekster();
-  // Keep focus on input after re-render
-  setTimeout(() => {
+  const inp = document.getElementById('search-input');
+  if (!inp) return;
+  const pos = inp.selectionStart;
+  cropSearch = inp.value;
+  // Re-render only the crop list, not the whole tab (preserves keyboard on mobile)
+  renderVeksterList();
+}
+
+function renderVeksterList() {
+  // Only updates the crop list portion inside tab-vekster
+  // Called from search to avoid keyboard dismissal on mobile
+  renderVekster(); // full render is fine since we keep focus
+  // Restore focus
+  requestAnimationFrame(() => {
     const inp = document.getElementById('search-input');
-    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
-  }, 0);
+    if (inp && document.activeElement !== inp) inp.focus();
+  });
 }
 
 function onSearchKey(e) {
@@ -1520,47 +1795,203 @@ function saveBedSize() {
 }
 
 /* ---- OPPGAVER ---- */
+function getOrderedTasks(priority) {
+  const pts = tasks.filter(t => t.priority === priority && !String(t.id).startsWith('crop-'));
+  const order = taskOrder[priority] || [];
+  const ordered = [];
+  order.forEach(id => { const t = pts.find(t => t.id === id); if (t) ordered.push(t); });
+  pts.forEach(t => { if (!order.includes(t.id)) ordered.push(t); });
+  return ordered;
+}
+
+function saveTaskOrder() {
+  try { localStorage.setItem('mh_task_order', JSON.stringify(taskOrder)); } catch(e) {}
+}
+
+function saveFocusTasks() {
+  try { localStorage.setItem('mh_focus_tasks', JSON.stringify([...focusTaskIds])); } catch(e) {}
+}
+
+function toggleFocusTask(id) {
+  if (focusTaskIds.has(id)) focusTaskIds.delete(id);
+  else focusTaskIds.add(id);
+  saveFocusTasks();
+  renderOppgaver();
+}
+
+function openFocusModal() {
+  const focused = tasks.filter(t => focusTaskIds.has(t.id) && !t.done);
+  const modal = document.createElement('div');
+  modal.id = 'focus-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
+  const pColors = {høy:'#f87171',middels:'#fbbf24',lav:'#6ee7b7'};
+  const MONTHS_SHORT = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
+  modal.innerHTML = `
+    <div style="background:var(--bg-modal);border:1px solid var(--border-accent);border-radius:20px;padding:24px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.8)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-size:16px;color:var(--accent-soft);font-weight:400">🎯 Fokusoppgaver</div>
+        <button onclick="document.getElementById('focus-modal').remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1">×</button>
+      </div>
+      ${focused.length === 0
+        ? '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0">Ingen fokusoppgaver valgt.<br><br>Trykk ⊙ på en oppgave for å legge den til.</p>'
+        : focused.map(t => {
+            const tid = typeof t.id === 'string' ? `'${t.id}'` : t.id;
+            const dateDisplay = t.date ? (() => { const [d,m] = t.date.split('-'); return `${+d}. ${MONTHS_SHORT[+m-1]}`; })() : '';
+            return `<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--task-bg);border:1px solid ${pColors[t.priority]||'#fbbf24'}44;border-radius:12px;margin-bottom:10px">
+              <button onclick="toggleTask(${tid});document.getElementById('focus-modal').remove();openFocusModal()" style="width:24px;height:24px;border-radius:6px;border:2px solid ${pColors[t.priority]||'#fbbf24'};background:transparent;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--bg-main);flex-shrink:0">${t.done?'✓':''}</button>
+              <div style="flex:1">
+                <div style="font-size:15px;color:var(--text-head)">${t.text}</div>
+                ${dateDisplay ? `<div style="font-size:11px;color:var(--text-muted);margin-top:3px">📅 ${dateDisplay}</div>` : ''}
+              </div>
+              <div style="width:10px;height:10px;border-radius:50%;background:${pColors[t.priority]||'#fbbf24'};flex-shrink:0"></div>
+            </div>`;
+          }).join('')
+      }
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+function renderPriorityDots(taskId, currentPriority) {
+  const pColors = {høy:'#f87171',middels:'#fbbf24',lav:'#6ee7b7'};
+  const priorities = ['høy','middels','lav'];
+  const tid = typeof taskId === 'string' ? `'${taskId}'` : taskId;
+  return `<div style="display:flex;flex-direction:column;gap:4px;align-items:center;padding:2px 4px">
+    ${priorities.map(p => `
+      <button onclick="setTaskPriority(${tid},'${p}')" title="${p} prioritet" style="background:none;border:none;cursor:pointer;padding:1px;display:flex;align-items:center;justify-content:center">
+        <div style="width:${p===currentPriority?10:7}px;height:${p===currentPriority?10:7}px;border-radius:50%;background:${p===currentPriority?pColors[p]:'rgba(107,114,128,0.3)'};transition:all 0.15s;border:${p===currentPriority?'none':'1.5px solid rgba(107,114,128,0.3)'}"></div>
+      </button>`).join('')}
+  </div>`;
+}
+
+function setTaskPriority(id, priority) {
+  snapshot();
+  tasks = tasks.map(t => t.id === id ? {...t, priority} : t);
+  renderOppgaver();
+}
+
+function initTaskDragDrop() {
+  const rows = document.querySelectorAll('.task-row[draggable="true"]');
+  rows.forEach(row => {
+    row.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', row.dataset.taskId);
+      e.dataTransfer.setData('text/priority', row.dataset.priority);
+      row.style.opacity = '0.4';
+    });
+    row.addEventListener('dragend', () => row.style.opacity = '');
+    row.addEventListener('dragover', e => { e.preventDefault(); row.style.borderTop = '2px solid var(--accent)'; });
+    row.addEventListener('dragleave', () => row.style.borderTop = '');
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      row.style.borderTop = '';
+      const draggedId = e.dataTransfer.getData('text/plain');
+      const fromPriority = e.dataTransfer.getData('text/priority');
+      const toId = row.dataset.taskId;
+      const toPriority = row.dataset.priority;
+      const draggedIdParsed = isNaN(draggedId) ? draggedId : +draggedId;
+      const toIdParsed = isNaN(toId) ? toId : +toId;
+      if (draggedIdParsed === toIdParsed) return;
+
+      // Change priority if dropped in different section
+      if (fromPriority !== toPriority) {
+        snapshot();
+        tasks = tasks.map(t => t.id === draggedIdParsed ? {...t, priority: toPriority} : t);
+      }
+
+      // Update order
+      if (!taskOrder[toPriority]) taskOrder[toPriority] = getOrderedTasks(toPriority).map(t => t.id);
+      const order = [...(taskOrder[toPriority] || [])];
+      const draggedIdx = order.indexOf(draggedIdParsed);
+      const toIdx = order.indexOf(toIdParsed);
+      if (draggedIdx > -1) order.splice(draggedIdx, 1);
+      const insertIdx = toIdx > -1 ? toIdx : order.length;
+      order.splice(insertIdx, 0, draggedIdParsed);
+      taskOrder[toPriority] = order;
+      if (fromPriority !== toPriority && taskOrder[fromPriority]) {
+        taskOrder[fromPriority] = taskOrder[fromPriority].filter(id => id !== draggedIdParsed);
+      }
+      saveTaskOrder();
+      renderOppgaver();
+    });
+  });
+  // Drop on section headers
+  document.querySelectorAll('.task-drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.background = 'rgba(52,211,153,0.08)'; });
+    zone.addEventListener('dragleave', () => zone.style.background = '');
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.style.background = '';
+      const draggedId = e.dataTransfer.getData('text/plain');
+      const fromPriority = e.dataTransfer.getData('text/priority');
+      const toPriority = zone.dataset.priority;
+      const draggedIdParsed = isNaN(draggedId) ? draggedId : +draggedId;
+      if (fromPriority !== toPriority) {
+        snapshot();
+        tasks = tasks.map(t => t.id === draggedIdParsed ? {...t, priority: toPriority} : t);
+      }
+      if (!taskOrder[toPriority]) taskOrder[toPriority] = [];
+      if (!taskOrder[toPriority].includes(draggedIdParsed)) taskOrder[toPriority].push(draggedIdParsed);
+      saveTaskOrder();
+      renderOppgaver();
+    });
+  });
+}
+
 function renderOppgaver() {
   const priorities = ['høy','middels','lav'];
   const pColors = {høy:'#f87171',middels:'#fbbf24',lav:'#6ee7b7'};
+  const pLabels = {høy:'Høy',middels:'Middels',lav:'Lav'};
+  const MONTHS_SHORT = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
+  const focusCount = tasks.filter(t => focusTaskIds.has(t.id) && !t.done).length;
 
   document.getElementById('tab-oppgaver').innerHTML = `
-    <button class="add-btn" onclick="document.getElementById('modal-task').style.display='flex'">+ Ny oppgave</button>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="add-btn" style="margin-bottom:0;flex:1" onclick="document.getElementById('modal-task').style.display='flex'">+ Ny oppgave</button>
+      <button onclick="openFocusModal()" style="padding:13px 16px;border-radius:12px;border:1px solid var(--border);background:var(--bg-card);color:${focusCount>0?'#fbbf24':'var(--text-muted)'};cursor:pointer;font-size:14px;font-family:inherit;white-space:nowrap;flex-shrink:0" title="Fokusoppgaver">🎯${focusCount>0?` ${focusCount}`:''}</button>
+    </div>
     ${priorities.map(p => {
-      const pts = tasks.filter(t => t.priority === p);
-      if (!pts.length) return '';
+      const pts = getOrderedTasks(p);
+      const autoPts = tasks.filter(t => t.priority === p && String(t.id).startsWith('crop-'));
+      if (!pts.length && !autoPts.length) return '';
       return `<div class="task-section">
-        <div class="task-priority-label" style="color:${pColors[p]}">● ${p.charAt(0).toUpperCase()+p.slice(1)} prioritet</div>
+        <div class="task-drop-zone" data-priority="${p}" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:4px 2px;border-radius:6px;transition:background 0.15s">
+          <div style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:${pColors[p]}">${pLabels[p]} prioritet</div>
+        </div>
         ${pts.map(t => {
           const tid = typeof t.id === 'string' ? `'${t.id}'` : t.id;
-          const isAuto = typeof t.id === 'string' && t.id.startsWith('crop-');
-          const MONTHS_SHORT = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
           const dateDisplay = t.date ? (() => { const [d,m] = t.date.split('-'); return `${+d}. ${MONTHS_SHORT[+m-1]}`; })() : '+ dato';
+          const isFocused = focusTaskIds.has(t.id);
+          return `
+          <div class="task-row ${t.done?'done':''}" draggable="true" data-task-id="${t.id}" data-priority="${p}">
+            <button class="check-btn ${t.done?'checked':''}" onclick="toggleTask(${tid})">${t.done?'✓':''}</button>
+            <div style="flex:1;min-width:0">
+              <div class="task-text" onclick="startEditTaskText(${tid}, this)" style="cursor:text;min-height:20px" title="Trykk for å redigere">${t.text}</div>
+              <div class="task-date" onclick="startEditTaskDate(${tid}, event)" style="cursor:pointer;color:${t.date?'var(--text-muted)':'rgba(107,114,128,0.4)'}">📅 ${dateDisplay}</div>
+            </div>
+            <button onclick="toggleFocusTask(${tid})" title="Fokus" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;color:${isFocused?'#fbbf24':'rgba(107,114,128,0.4)'}">⊙</button>
+            ${renderPriorityDots(t.id, p)}
+            <button class="delete-btn" onclick="deleteTask(${tid})">×</button>
+          </div>`;
+        }).join('')}
+        ${autoPts.map(t => {
+          const tid = `'${t.id}'`;
+          const dateDisplay = t.date ? (() => { const [d,m] = t.date.split('-'); return `${+d}. ${MONTHS_SHORT[+m-1]}`; })() : '';
           return `
           <div class="task-row ${t.done?'done':''}">
-            ${isAuto
-              ? `<div class="check-btn ${t.done?'checked':''}" title="Registrer så/plante-logg for å krysse av" style="cursor:default;opacity:0.5">${t.done?'✓':'🔒'}</div>`
-              : `<button class="check-btn ${t.done?'checked':''}" onclick="toggleTask(${tid})">${t.done?'✓':''}</button>`
-            }
+            <div class="check-btn ${t.done?'checked':''}" title="Registrer så/plante-logg for å krysse av" style="cursor:default;opacity:0.5">${t.done?'✓':'🔒'}</div>
             <div style="flex:1;min-width:0">
-              ${isAuto
-                ? `<div class="task-text">${t.text}</div>`
-                : `<div class="task-text" onclick="startEditTaskText(${tid}, this)" style="cursor:text;min-height:20px" title="Trykk for å redigere">${t.text}</div>`
-              }
-              ${isAuto
-                ? (t.date ? `<div class="task-date">📅 ${dateDisplay}</div>` : '')
-                : `<div class="task-date" onclick="startEditTaskDate(${tid}, event)" style="cursor:pointer;color:${t.date?'#6b7280':'rgba(107,114,128,0.5)'}">📅 ${dateDisplay}</div>`
-              }
+              <div class="task-text">${t.text}</div>
+              ${t.date ? `<div class="task-date">📅 ${dateDisplay}</div>` : ''}
             </div>
-            ${isAuto ? '' : `
-              <button onclick="cycleTaskPriority(${tid})" title="Endre prioritet" style="background:none;border:none;cursor:pointer;font-size:16px;padding:2px 4px;color:${pColors[t.priority]}">●</button>
-              <button class="delete-btn" onclick="deleteTask(${tid})">×</button>
-            `}
+            <div style="width:8px;height:8px;border-radius:50%;background:${pColors[p]};flex-shrink:0"></div>
           </div>`;
         }).join('')}
       </div>`;
     }).join('')}
-    ${tasks.length===0?'<p style="color:#6b7280;font-size:13px;text-align:center;padding:20px 0">Ingen oppgaver ennå</p>':''}`;
+    ${tasks.filter(t => !String(t.id).startsWith('crop-')).length===0?'<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0">Ingen oppgaver ennå</p>':''}`;
+  
+  // Initialize drag and drop after render
+  requestAnimationFrame(() => initTaskDragDrop());
 }
 
 function toggleTask(id) {
@@ -1705,7 +2136,7 @@ function getCalEvents() {
     }
   });
   const pColors = {høy:'#f87171', middels:'#fbbf24', lav:'#6ee7b7'};
-  tasks.filter(t => t.date && !t.done).forEach(t => {
+  tasks.filter(t => t.date && !t.done && !String(t.id).startsWith('crop-')).forEach(t => {
     add(t.date, t.text, '📋', pColors[t.priority] || '#fbbf24', { taskId: t.id, priority: t.priority });
   });
 
@@ -1767,8 +2198,18 @@ function renderKalender() {
   const weekKeys = Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(monday.getDate()+i); return toDateKey(d); });
   const MONTHS_SHORT = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
   const DAYS_FULL = ['Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag','Søndag'];
+  // Add overdue undone tasks to their original date (still show them even if past)
+  const overdueEvents = {};
+  tasks.filter(t => t.date && !t.done && !String(t.id).startsWith('crop-')).forEach(t => {
+    const d = parseToDate(t.date);
+    if (!d) return;
+    const k = toDateKey(d);
+    if (!weekKeys.includes(k)) return; // only show in their own week
+    if (!overdueEvents[k]) overdueEvents[k] = [];
+    overdueEvents[k].push({ label: t.text, emoji: '📋', color: ({høy:'#f87171',middels:'#fbbf24',lav:'#6ee7b7'})[t.priority]||'#fbbf24', taskId: t.id, priority: t.priority });
+  });
   const ukelisteItems = weekKeys.map((key, i) => {
-    const ev = events[key] || [];
+    const ev = [...(events[key] || [])];
     if (!ev.length) return '';
     const parts = key.split('-');
     const monthName = MONTHS_SHORT[parseInt(parts[1])-1];
@@ -2092,7 +2533,7 @@ function renderModus() {
       +'</div>';
     details += '<div style="margin-bottom:14px">'
       +'<div style="font-size:11px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px">Notater</div>'
-      +'<textarea id="modus-notes" onchange="modusNotesChanged()" oninput="modusNotesChanged()" rows="2" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#d1fae5;font-size:11px;font-family:inherit;resize:vertical;line-height:1.5">'+escapeHtml(crop.notes||'')+'</textarea>'
+      +'<textarea id="modus-notes" onchange="modusNotesChanged()" oninput="modusNotesChanged()" rows="2" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#d1fae5;font-size:11px;font-family:inherit;resize:vertical;line-height:1.5">'+escapeHtml(modusNotes[crop.id] !== undefined ? modusNotes[crop.id] : (crop.notes||''))+'</textarea>'
       +'</div>';
     details += logSection;
   } else {
@@ -2117,7 +2558,7 @@ function renderModus() {
       +'</div>';
     details += '<div style="margin-bottom:14px">'
       +'<div style="font-size:11px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px">Notater</div>'
-      +'<textarea id="modus-notes" onchange="modusNotesChanged()" oninput="modusNotesChanged()" rows="2" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#d1fae5;font-size:11px;font-family:inherit;resize:vertical;line-height:1.5">'+escapeHtml(crop.notes||'')+'</textarea>'
+      +'<textarea id="modus-notes" onchange="modusNotesChanged()" oninput="modusNotesChanged()" rows="2" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#d1fae5;font-size:11px;font-family:inherit;resize:vertical;line-height:1.5">'+escapeHtml(modusNotes[crop.id] !== undefined ? modusNotes[crop.id] : (crop.notes||''))+'</textarea>'
       +'</div>';
     details += logSection;
   }
@@ -2297,6 +2738,9 @@ function saveToLocal() {
       saved: new Date().toISOString(),
     };
     localStorage.setItem('mh_data', JSON.stringify(data));
+    localStorage.setItem('mh_task_order', JSON.stringify(taskOrder));
+    localStorage.setItem('mh_focus_tasks', JSON.stringify([...focusTaskIds]));
+    if (gardenMap) localStorage.setItem('mh_garden_map', JSON.stringify(gardenMap));
   } catch(e) { console.warn('localStorage save failed:', e); }
 }
 
@@ -2550,6 +2994,18 @@ let syncKey       = null;  // JSONBin Master Key
 let syncBinId     = null;  // JSONBin Bin ID
 let syncConnected = false;
 let syncTimer     = null;
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  applyTheme();
+  try { localStorage.setItem('mh_theme', currentTheme); } catch(e) {}
+}
+
+function applyTheme() {
+  document.body.classList.toggle('light', currentTheme === 'light');
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = currentTheme === 'dark' ? '☀' : '🌙';
+}
 
 function initSync() {
   try {
@@ -2884,6 +3340,7 @@ loadFromLocal();
 snapshot(true);
 showTab(currentTab);
 initSync();
+applyTheme();
 
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
