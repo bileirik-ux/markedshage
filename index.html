@@ -3545,16 +3545,21 @@ function applyTheme() {
 }
 
 function initSync() {
+  const DEFAULT_KEY = '$2a$10$H3ZyijeCyakGbK9kSCv3U.NqxD/DZNaug3LPpodQYWWiAF270R3oq';
+  const DEFAULT_BIN = '69b17723c3097a1dd517e7da';
   try {
-    syncKey       = localStorage.getItem('mh_sync_key') || '$2a$10$H3ZyijeCyakGbK9kSCv3U.NqxD/DZNaug3LPpodQYWWiAF270R3oq';
-    syncBinId     = localStorage.getItem('mh_sync_id')  || '69b17723c3097a1dd517e7da';
-    syncConnected = !!syncKey;
-  } catch(e) {}
-  renderSyncBtn();
-  if (syncConnected) {
-    syncLoadOnStart();
-    startSyncPolling();
+    syncKey   = localStorage.getItem('mh_sync_key') || DEFAULT_KEY;
+    syncBinId = localStorage.getItem('mh_sync_id')  || DEFAULT_BIN;
+    // Save defaults to localStorage so they persist
+    if (!localStorage.getItem('mh_sync_key')) localStorage.setItem('mh_sync_key', DEFAULT_KEY);
+    if (!localStorage.getItem('mh_sync_id'))  localStorage.setItem('mh_sync_id',  DEFAULT_BIN);
+    syncConnected = true;
+  } catch(e) {
+    syncKey = DEFAULT_KEY; syncBinId = DEFAULT_BIN; syncConnected = true;
   }
+  renderSyncBtn();
+  syncLoadOnStart();
+  startSyncPolling();
 }
 
 function renderSyncBtn() {
