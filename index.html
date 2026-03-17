@@ -38,24 +38,24 @@
     --task-border: rgba(255,255,255,0.07);
   }
   body.light {
-    --bg-main: #f0f7f0;
-    --bg-grad: linear-gradient(135deg, #e8f5e9 0%, #f0faf0 40%, #e8f5e9 100%);
-    --bg-header: rgba(240,247,240,0.95);
-    --bg-nav: rgba(240,247,240,0.98);
-    --bg-card: rgba(255,255,255,0.7);
-    --bg-input: rgba(255,255,255,0.8);
-    --bg-modal: #f5fbf5;
-    --border: rgba(0,0,0,0.08);
-    --border-accent: rgba(22,163,74,0.2);
-    --text-main: #1a3a1e;
-    --text-head: #14532d;
-    --text-muted: #4b7a52;
-    --text-dim: #6b9e72;
-    --accent: #16a34a;
-    --accent-soft: #15803d;
-    --accent-bg: rgba(22,163,74,0.1);
-    --task-bg: rgba(255,255,255,0.6);
-    --task-border: rgba(0,0,0,0.07);
+    --bg-main: #fdf8f0;
+    --bg-grad: linear-gradient(135deg, #fdf8f0 0%, #faf0e0 50%, #fdf8f0 100%);
+    --bg-header: rgba(253,248,240,0.97);
+    --bg-nav: rgba(253,248,240,0.98);
+    --bg-card: rgba(255,252,245,0.9);
+    --bg-input: rgba(255,252,245,0.95);
+    --bg-modal: #fdf8f0;
+    --border: rgba(160,120,60,0.12);
+    --border-accent: rgba(180,110,30,0.2);
+    --text-main: #2d1f0a;
+    --text-head: #3b2510;
+    --text-muted: #8b6240;
+    --text-dim: #b08060;
+    --accent: #b45309;
+    --accent-soft: #d97706;
+    --accent-bg: rgba(180,83,9,0.08);
+    --task-bg: rgba(255,252,245,0.9);
+    --task-border: rgba(160,120,60,0.1);
   }
 
   body {
@@ -138,7 +138,7 @@
   .bed-cell.selected { border-color: #34d399 !important; }
   .bed-label { font-size: 10px; color: #6b7280; letter-spacing: 0.12em; text-transform: uppercase; }
   .bed-emoji { float: right; font-size: 16px; }
-  .bed-name { font-size: 13px; color: #d1fae5; margin-top: 8px; }
+  .bed-name { font-size: 13px; color: var(--text-head); margin-top: 8px; }
   .bed-empty { font-size: 11px; color: #6b7280; margin-top: 10px; }
   .bed-detail {
     margin-top: 14px;
@@ -154,7 +154,7 @@
   .crop-name { font-size: 15px; color: var(--text-head); }
   .crop-family { font-size: 11px; color: #6b7280; }
   .crop-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; color: #6b7280; margin-bottom: 10px; }
-  .crop-meta span { color: #d1fae5; }
+  .crop-meta span { color: var(--text-head); }
   .crop-notes { font-size: 11px; color: #9ca3af; font-style: italic; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; margin-bottom: 10px; }
   .status-row { display: flex; gap: 5px; flex-wrap: wrap; }
   .status-btn { flex: 1; min-width: 60px; padding: 5px 2px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.08); background: transparent; color: #4b5563; cursor: pointer; font-size: 10px; font-family: inherit; transition: all 0.15s; }
@@ -192,7 +192,7 @@
   .modal { background: var(--bg-modal); border: 1px solid rgba(52,211,153,0.3); border-radius: 20px 20px 0 0; padding: 24px 20px 36px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
   .modal-title { font-size: 17px; font-weight: 400; color: var(--accent-soft); margin-bottom: 18px; }
   .field-label { font-size: 10px; color: #6b7280; display: block; margin-bottom: 4px; letter-spacing: 0.1em; text-transform: uppercase; }
-  .field-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: #d1fae5; font-size: 15px; font-family: inherit; }
+  .field-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text-head); font-size: 15px; font-family: inherit; }
   .field-input:focus { outline: none; border-color: rgba(52,211,153,0.4); }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   .form-full { margin-bottom: 12px; }
@@ -202,11 +202,21 @@
   .priority-row { display: flex; gap: 8px; }
   .priority-btn { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: transparent; cursor: pointer; font-size: 12px; font-family: inherit; color: #6b7280; transition: all 0.15s; }
 
+  /* MAP */
+  .map-tool-btn { padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.15s; }
+  .map-tool-btn.active { border-color:var(--accent);background:rgba(52,211,153,0.15);color:var(--accent-soft); }
+  body.light .map-tool-btn { border-color:rgba(0,0,0,0.15);background:rgba(255,255,255,0.6);color:#4b7a52; }
+  body.light .map-tool-btn.active { border-color:#16a34a;background:rgba(22,163,74,0.12);color:#15803d; }
+  .map-bed { position:absolute;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:box-shadow 0.15s;user-select:none; }
+  .map-bed:hover { box-shadow:0 0 0 2px white; }
+  .map-bed.selected { box-shadow:0 0 0 2.5px white; }
+  .map-extra { position:absolute;border-radius:4px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border:2px dashed #6b7280;background:rgba(107,114,128,0.12);color:var(--text-muted);font-size:11px; }
+
   /* DATE PICKER */
   .date-input-wrap { position: relative; }
   .date-display {
     width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px; padding: 10px 12px; color: #d1fae5; font-size: 15px;
+    border-radius: 8px; padding: 10px 12px; color: var(--text-head); font-size: 15px;
     font-family: inherit; cursor: pointer; text-align: left; display: flex;
     justify-content: space-between; align-items: center;
   }
@@ -219,19 +229,21 @@
   }
   .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
   .cal-nav { background: none; border: none; color: #6ee7b7; font-size: 18px; cursor: pointer; padding: 4px 8px; }
-  .cal-month-label { font-size: 14px; color: #d1fae5; font-family: inherit; }
+  .cal-month-label { font-size: 14px; color: var(--text-head); font-family: inherit; }
   .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
   .cal-dow { font-size: 10px; color: #6b7280; text-align: center; padding: 4px 0; letter-spacing: 0.05em; }
   .cal-day {
     aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-    font-size: 13px; border-radius: 8px; cursor: pointer; color: #d1fae5;
+    font-size: 13px; border-radius: 8px; cursor: pointer; color: var(--text-head);
     background: transparent; border: none; font-family: inherit; transition: background 0.1s;
   }
   .cal-day:hover { background: rgba(52,211,153,0.15); }
-  .cal-day.today { color: #6ee7b7; font-weight: bold; }
-  .cal-day.selected { background: #34d399 !important; color: #0d1a0e; }
-  .cal-day.other-month { color: #374151; }
+  .cal-day.today { color: var(--accent-soft); font-weight: bold; }
+  .cal-day.selected { background: var(--accent) !important; color: #fff; }
+  .cal-day.other-month { color: var(--text-dim); }
   .cal-day.empty { cursor: default; }
+  body.light .cal-day { color: var(--text-head); }
+  body.light .cal-day.today { color: var(--accent); }
   .cal-clear { margin-top: 10px; width: 100%; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #6b7280; font-family: inherit; font-size: 12px; cursor: pointer; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -263,17 +275,19 @@
         </svg>
         <div>
           <div class="header-eyebrow" style="font-size:9px;color:#c9a84c">Markedshage</div>
-          <h1 style="font-size:16px;font-weight:600;color:#e8f5e9;letter-spacing:0.02em;margin:0">Assistenten</h1>
+          <h1 style="font-size:16px;font-weight:600;color:var(--text-main);letter-spacing:0.02em;margin:0">Assistenten</h1>
         </div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;position:relative">
-        <button id="undo-btn" onclick="undo()" title="Angre (Ctrl+Z)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↩</button>
-        <button id="redo-btn" onclick="redo()" title="Gjør om (Ctrl+Y)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↪</button>
-        <button onclick="syncConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="JSONBin synkronisering" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">☁</button>
-        <button onclick="toggleGearMenu()" id="gear-btn" title="Innstillinger" style="padding:7px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#6b7280;cursor:pointer;font-size:15px;font-family:inherit;line-height:1">⚙</button>
-        <div id="gear-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:190px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
+        <button id="undo-btn" onclick="undo()" title="Angre (Ctrl+Z)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↩</button>
+        <button id="redo-btn" onclick="redo()" title="Gjør om (Ctrl+Y)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↪</button>
+        <button onclick="syncConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="JSONBin synkronisering" style="padding:7px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">☁</button>
+        <button onclick="toggleGearMenu()" id="gear-btn" title="Innstillinger" style="padding:7px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">⚙</button>
+        <div id="gear-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--bg-modal);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:190px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
+          <button onclick="toggleTheme();closeGearMenu()" id="theme-menu-btn" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#fbbf24;font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">☀ Lyst tema</button>
+          <div style="height:1px;background:rgba(255,255,255,0.08);margin:4px 0"></div>
           <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:#60a5fa;font-family:inherit" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">⬆ Importer fra Excel<input type="file" accept=".xlsx" onchange="importFromExcel(event);closeGearMenu()" style="display:none"></label>
-          <button onclick="exportToExcel();closeGearMenu()" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#6ee7b7;font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">⬇ Eksporter til Excel</button>
+          <button onclick="exportToExcel();closeGearMenu()" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:var(--accent-soft);font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">⬇ Eksporter til Excel</button>
           <div style="height:1px;background:rgba(255,255,255,0.08);margin:4px 0"></div>
           <button onclick="nullstill();closeGearMenu()" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#f87171;font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">🗑 Nullstill</button>
         </div>
@@ -364,7 +378,7 @@
       <div class="priority-row" id="priority-btns">
         <button class="priority-btn" onclick="setPriority('høy')" style="color:#f87171;border-color:#f87171">Høy</button>
         <button class="priority-btn active" onclick="setPriority('middels')" style="color:#fbbf24;border-color:#fbbf24">Middels</button>
-        <button class="priority-btn" onclick="setPriority('lav')" style="color:#6ee7b7;border-color:#6ee7b7">Lav</button>
+        <button class="priority-btn" onclick="setPriority('lav')" style="color:var(--accent-soft);border-color:var(--accent-soft)">Lav</button>
       </div>
     </div>
     <div class="modal-actions">
@@ -377,7 +391,7 @@
 <div id="modal-import" class="modal-overlay" style="display:none">
   <div class="modal">
     <div class="modal-title">Importer fra Excel</div>
-    <div id="import-preview" style="font-size:13px;color:#9ca3af;margin-bottom:16px"></div>
+    <div id="import-preview" style="font-size:13px;color:var(--text-muted);margin-bottom:16px"></div>
     <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#fbbf24">
       ⚠️ Dette vil erstatte all eksisterende data med innholdet fra filen.
     </div>
@@ -408,7 +422,7 @@
 <div id="modal-confirm-delete" class="modal-overlay" style="display:none">
   <div class="modal">
     <div class="modal-title" style="color:#f87171">⚠️ Fjern vekst</div>
-    <div id="confirm-delete-body" style="font-size:13px;color:#d1fae5;margin-bottom:16px;line-height:1.6"></div>
+    <div id="confirm-delete-body" style="font-size:13px;color:var(--text-head);margin-bottom:16px;line-height:1.6"></div>
     <div class="modal-actions">
       <button onclick="confirmDeleteCrop()" style="flex:1;padding:13px;border-radius:12px;border:1px solid rgba(248,113,113,0.5);background:rgba(248,113,113,0.15);color:#f87171;cursor:pointer;font-size:14px;font-family:inherit">Ja, fjern veksten</button>
       <button class="btn-secondary" onclick="closeModal('modal-confirm-delete')">Avbryt</button>
@@ -420,7 +434,7 @@
 <div id="modal-new-bed" class="modal-overlay" style="display:none">
   <div class="modal">
     <div class="modal-title">🌿 Ukjent seng</div>
-    <div style="font-size:13px;color:#d1fae5;margin-bottom:18px;line-height:1.6">
+    <div style="font-size:13px;color:var(--text-head);margin-bottom:18px;line-height:1.6">
       Seng <strong id="new-bed-name"></strong> finnes ikke ennå. Vil du legge den til med standard størrelse (11m × 1,2m)?
     </div>
     <div class="modal-actions">
@@ -526,9 +540,9 @@ function updateUndoRedoBtns() {
   const canRedo = historyIndex < history.length - 1;
   ub.disabled = !canUndo;
   rb.disabled = !canRedo;
-  ub.style.color    = canUndo ? '#d1fae5' : '#6b7280';
+  ub.style.color    = canUndo ? 'var(--text-head)' : 'var(--text-dim)';
   ub.style.borderColor = canUndo ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)';
-  rb.style.color    = canRedo ? '#d1fae5' : '#6b7280';
+  rb.style.color    = canRedo ? 'var(--text-head)' : 'var(--text-dim)';
   rb.style.borderColor = canRedo ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)';
 }
 
@@ -750,18 +764,18 @@ function renderOversikt() {
     </div>
     <div class="card">
       <div class="card-title">Kommende oppgaver</div>
-      ${upcoming.length === 0 ? '<p style="color:#6b7280;font-size:13px">Ingen åpne oppgaver 🎉</p>' : ''}
+      ${upcoming.length === 0 ? '<p style="color:var(--text-muted);font-size:13px">Ingen åpne oppgaver 🎉</p>' : ''}
       ${upcoming.map(t => {
         const pc = {høy:"#f87171",middels:"#fbbf24",lav:"#6ee7b7"}[t.priority];
         return `<div class="list-row">
           <div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${pc}"></div>
           <div style="flex:1">
-            <div style="font-size:13px;color:#d1fae5">${t.text}</div>
-            <div style="font-size:11px;color:#6b7280;margin-top:2px">📅 ${t.date}</div>
+            <div style="font-size:13px;color:var(--text-head)">${t.text}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">📅 ${t.date}</div>
           </div>
           ${typeof t.id === 'string' && t.id.startsWith('crop-')
-            ? `<div style="font-size:11px;color:#6b7280;padding:5px 10px">🔒</div>`
-            : `<button onclick="toggleTask(${typeof t.id === 'string' ? `'${t.id}'` : t.id})" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:8px;color:#34d399;cursor:pointer;padding:5px 10px;font-size:11px;font-family:inherit">Ferdig</button>`
+            ? `<div style="font-size:11px;color:var(--text-muted);padding:5px 10px">🔒</div>`
+            : `<button onclick="toggleTask(${typeof t.id === 'string' ? `'${t.id}'` : t.id})" style="background:rgba(52,211,153,0.1);border:1px solid var(--border-accent);border-radius:8px;color:var(--accent);cursor:pointer;padding:5px 10px;font-size:11px;font-family:inherit">Ferdig</button>`
           }
         </div>`;
       }).join('')}
@@ -772,8 +786,8 @@ function renderOversikt() {
         <div class="list-row">
           <span style="font-size:22px">${c.emoji}</span>
           <div style="flex:1">
-            <div style="font-size:13px;color:#d1fae5">${c.name}</div>
-            <div style="font-size:11px;color:#6b7280">Seng: ${c.beds.join(', ')}</div>
+            <div style="font-size:13px;color:var(--text-head)">${c.name}</div>
+            <div style="font-size:11px;color:var(--text-muted)">Seng: ${c.beds.join(', ')}</div>
           </div>
           ${badge(c.status)}
         </div>`).join('')}
@@ -804,223 +818,696 @@ function calcValue(crop) {
 }
 
 
+
 // ════════════════════════════════════════════════════════════════
-// HAGE-KART
+// HAGE-KART v5 — Proporsjonalt kart med feltinnstillinger
 // ════════════════════════════════════════════════════════════════
+//
+// gardenMap = {
+//   fieldSettings: { A: { orientation:'landscape'|'portrait', gangvei:1.0 }, ... },
+//   extras: [{id,x,y,w,h,label}],
+//   locked: false
+// }
+// Beds are always auto-generated from BED_IDS + bedSizes + fieldSettings
+// No stored positions — layout recalculates from settings
+
+const MAP_PX_PER_M = 28;   // px per meter (base scale)
+const MAP_PAD_M    = 1.5;  // padding in meters
+
+const MAP_FIELD_ACCENTS = ['#34d399','#60a5fa','#f87171','#fbbf24','#a78bfa','#fb923c'];
+const MAP_FIELD_FILLS   = [
+  'rgba(52,211,153,0.13)','rgba(96,165,250,0.13)','rgba(248,113,113,0.13)',
+  'rgba(251,191,36,0.13)', 'rgba(167,139,250,0.13)','rgba(251,146,60,0.13)'
+];
+const MAP_STATUS_COLORS = {
+  planlagt:'#6b7280', sådd:'#60a5fa', plantet:'#34d399', høstet:'#fbbf24', avsluttet:'#4b5563'
+};
+
+function mapFieldLetters() {
+  return [...new Set(BED_IDS.map(id => id.match(/^([A-Za-z]+)/)?.[1]||'A'))].sort();
+}
+function mapFieldIdx(bedId) {
+  return mapFieldLetters().indexOf(bedId.match(/^([A-Za-z]+)/)?.[1]||'A');
+}
+function mapFieldSettings(letter) {
+  if (!gardenMap.fieldSettings) gardenMap.fieldSettings = {};
+  if (!gardenMap.fieldSettings[letter]) {
+    gardenMap.fieldSettings[letter] = { orientation: 'landscape', gangvei: 0.4 };
+  }
+  return gardenMap.fieldSettings[letter];
+}
+
+// Calculate layout positions from fieldSettings + fieldGrid (snap grid)
+function calcMapLayout() {
+  const layout = {};
+  const letters = mapFieldLetters();
+  if (!gardenMap.fieldGrid) gardenMap.fieldGrid = {};
+
+  // Default grid: stack vertically in column 0
+  letters.forEach((letter, i) => {
+    if (!gardenMap.fieldGrid[letter]) gardenMap.fieldGrid[letter] = { col: 0, row: i };
+  });
+
+  // First pass: internal layout per field
+  const fieldLayouts = {};
+  letters.forEach(letter => {
+    const beds = BED_IDS.filter(id => (id.match(/^([A-Za-z]+)/)?.[1]||'A') === letter);
+    const fs = mapFieldSettings(letter);
+    const isPortrait = fs.orientation === 'portrait';
+    const gangPx = Math.round(fs.gangvei * MAP_PX_PER_M);
+    let curX = 0, maxH = 0;
+    const bedLayouts = {};
+    beds.forEach(id => {
+      const sz = bedSizes[id] || {length:11, width:1.2};
+      const w = Math.round((isPortrait ? sz.width  : sz.length) * MAP_PX_PER_M);
+      const h = Math.round((isPortrait ? sz.length : sz.width ) * MAP_PX_PER_M);
+      bedLayouts[id] = { x: curX, y: 0, w, h };
+      curX += w + gangPx;
+      if (h > maxH) maxH = h;
+    });
+    fieldLayouts[letter] = { beds: bedLayouts, width: curX, height: maxH };
+  });
+
+  // Second pass: position fields by grid cell
+  const padPx = Math.round(MAP_PAD_M * MAP_PX_PER_M);
+  const colWidths = {}, rowHeights = {};
+  letters.forEach(letter => {
+    const g = gardenMap.fieldGrid[letter];
+    const fl = fieldLayouts[letter];
+    const fgap = Math.round(1.0 * MAP_PX_PER_M); // 1m between fields
+    colWidths[g.col]  = Math.max(colWidths[g.col]  || 0, fl.width  + fgap);
+    rowHeights[g.row] = Math.max(rowHeights[g.row] || 0, fl.height + fgap);
+  });
+  const colOffsets = {}, rowOffsets = {};
+  let cxOff = padPx;
+  [...new Set(Object.keys(colWidths).map(Number))].sort((a,b)=>a-b).forEach(c => {
+    colOffsets[c] = cxOff; cxOff += colWidths[c];
+  });
+  let ryOff = padPx;
+  [...new Set(Object.keys(rowHeights).map(Number))].sort((a,b)=>a-b).forEach(r => {
+    rowOffsets[r] = ryOff; ryOff += rowHeights[r];
+  });
+  letters.forEach(letter => {
+    const g = gardenMap.fieldGrid[letter];
+    const fl = fieldLayouts[letter];
+    const ox = colOffsets[g.col] ?? padPx;
+    const oy = rowOffsets[g.row] ?? padPx;
+    Object.entries(fl.beds).forEach(([id, p]) => {
+      layout[id] = { x: ox + p.x, y: oy + p.y, w: p.w, h: p.h };
+    });
+  });
+  return layout;
+}
+
 function saveGardenMap() {
   try { localStorage.setItem('mh_garden_map', JSON.stringify(gardenMap)); } catch(e) {}
+  scheduleSync();
 }
+
+function initGardenMap() {
+  gardenMap = { fieldSettings: {}, extras: [], locked: false };
+  mapFieldLetters().forEach(l => mapFieldSettings(l)); // init defaults
+  saveGardenMap();
+}
+
+// ── Map state ──────────────────────────────────────────────────
+let mapOpen = false;
+let mapScale = 1;
+let mapOffX = 0, mapOffY = 0;
+let mapTouch1 = null;   // first touch {id,x,y}
+let mapTouch2 = null;   // second touch for pinch
+let mapPinchDist = 0;
+let mapPinchScale = 1;
+let mapPinchOX = 0, mapPinchOY = 0;
+let _mapMouseActive = false, mapMouseX = 0, mapMouseY = 0, mapMouseOX = 0, mapMouseOY = 0;
 
 function openGardenMap() {
-  const modal = document.createElement('div');
-  modal.id = 'garden-map-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;display:flex;flex-direction:column';
+  if (mapOpen) return;
+  if (!gardenMap || !gardenMap.fieldSettings) initGardenMap();
+  mapOpen = true;
+  mapScale = 1; mapOffX = 0; mapOffY = 0;
 
-  const cropOptions = crops.map(c => `<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
+  const overlay = document.createElement('div');
+  overlay.id = 'map-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;display:flex;flex-direction:column;background:var(--bg-main);';
 
-  modal.innerHTML = `
-    <div style="background:var(--bg-header);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-accent)">
-      <div style="font-size:16px;color:var(--accent-soft)">🗺 Hagekart</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select id="map-tool" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);font-size:12px;font-family:inherit">
-          <option value="rect">▭ Rektangel</option>
-          <option value="free">✏️ Frihånd</option>
-          <option value="select">↖ Velg</option>
-          <option value="delete">🗑 Slett</option>
-        </select>
-        <button onclick="clearGardenMap()" style="padding:6px 12px;border-radius:8px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.1);color:#f87171;cursor:pointer;font-size:12px;font-family:inherit">Nullstill</button>
-        <button onclick="document.getElementById('garden-map-modal').remove()" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit">Lukk</button>
+  overlay.innerHTML = `
+    <div style="flex-shrink:0;display:flex;align-items:center;gap:6px;padding:8px 12px;
+      background:var(--bg-header);border-bottom:1px solid var(--border-accent);flex-wrap:wrap">
+      <button onclick="closeGardenMap()" style="padding:6px 12px;border-radius:8px;
+        border:1px solid var(--border);background:var(--bg-card);
+        color:var(--text-muted);cursor:pointer;font-size:13px;font-family:inherit">✕ Lukk</button>
+      <span style="color:var(--accent-soft);font-size:13px;flex:1">🗺 Hagekart</span>
+      <div style="display:flex;gap:4px">
+        <button onclick="mapZoom(1.25)" style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);cursor:pointer;font-size:15px">+</button>
+        <button onclick="mapZoom(0.8)"  style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);cursor:pointer;font-size:15px">−</button>
+        <button onclick="mapFitAll()"   style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit" title="Vis hele kartet">⊞</button>
+        <button onclick="openMapSettings()" style="padding:5px 10px;border-radius:7px;
+          border:1px solid rgba(251,191,36,0.4);background:rgba(251,191,36,0.08);
+          color:#fbbf24;cursor:pointer;font-size:12px;font-family:inherit">⚙ Feltinnstillinger</button>
       </div>
     </div>
-    <div style="flex:1;overflow:hidden;position:relative">
-      <canvas id="garden-canvas" style="display:block;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas>
+    <div id="map-vp" style="flex:1;overflow:hidden;position:relative;touch-action:none;
+      background-image:radial-gradient(circle at 1px 1px, rgba(128,128,128,0.12) 1px, transparent 0);
+      background-size:${MAP_PX_PER_M}px ${MAP_PX_PER_M}px">
+      <div id="map-world" style="position:absolute;transform-origin:0 0;will-change:transform;cursor:grab"></div>
     </div>
-    <div id="map-crop-panel" style="display:none;background:var(--bg-modal);border-top:1px solid var(--border-accent);padding:12px 16px">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Tildel vekst til valgt seng:</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select id="map-crop-select" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);font-size:13px;font-family:inherit">
-          <option value="">— Ingen vekst —</option>
-          ${cropOptions}
-        </select>
-        <button onclick="assignCropToMapBed()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent-soft);cursor:pointer;font-size:13px;font-family:inherit">Tilordne</button>
-        <button id="map-label-btn" onclick="renameMapBed()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:13px;font-family:inherit">Gi navn</button>
-      </div>
+    <div id="map-infobar" style="flex-shrink:0;min-height:44px;padding:8px 12px;
+      background:var(--bg-header);border-top:1px solid var(--border-accent);
+      font-size:12px;color:#6b7280;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      Trykk på en seng for detaljer
     </div>`;
 
-  document.body.appendChild(modal);
-  initGardenCanvas();
+  document.body.appendChild(overlay);
+  renderMapWorld();
+  mapFitAll();
+
+  const vp = document.getElementById('map-vp');
+  // Use both touch and mouse events for maximum compatibility
+  vp.addEventListener('touchstart',  mapTouchStart,  {passive:false});
+  vp.addEventListener('touchmove',   mapTouchMove,   {passive:false});
+  vp.addEventListener('touchend',    mapTouchEnd,    {passive:false});
+  vp.addEventListener('touchcancel', mapTouchEnd,    {passive:false});
+  vp.addEventListener('mousedown',   mapMouseDown,   {passive:false}); // mapMouseDown is the function
+  vp.addEventListener('wheel',       mapWheel,       {passive:false});
 }
 
-let mapCanvas, mapCtx, mapDrawing = false, mapStart = {x:0,y:0}, mapSelected = null, mapFreePoints = [];
-const MAP_COLORS = ['#34d399','#60a5fa','#f87171','#fbbf24','#a78bfa','#fb923c','#f472b6','#4ade80'];
-
-function initGardenCanvas() {
-  mapCanvas = document.getElementById('garden-canvas');
-  mapCtx = mapCanvas.getContext('2d');
-  resizeMapCanvas();
-  window.addEventListener('resize', resizeMapCanvas);
-  drawGardenMap();
-
-  mapCanvas.addEventListener('pointerdown', mapPointerDown);
-  mapCanvas.addEventListener('pointermove', mapPointerMove);
-  mapCanvas.addEventListener('pointerup', mapPointerUp);
+function closeGardenMap() {
+  document.getElementById('map-overlay')?.remove();
+  mapOpen = false; mapTouch1 = null; mapTouch2 = null; _mapMouseActive = false;
 }
 
-function resizeMapCanvas() {
-  if (!mapCanvas) return;
-  const rect = mapCanvas.parentElement.getBoundingClientRect();
-  mapCanvas.width = rect.width;
-  mapCanvas.height = rect.height;
-  drawGardenMap();
+function mapApplyTransform() {
+  const w = document.getElementById('map-world');
+  if (w) w.style.transform = `translate(${mapOffX}px,${mapOffY}px) scale(${mapScale})`;
 }
 
-function getMapPos(e) {
-  const rect = mapCanvas.getBoundingClientRect();
-  return { x: (e.clientX - rect.left) * (mapCanvas.width / rect.width),
-           y: (e.clientY - rect.top)  * (mapCanvas.height / rect.height) };
+function mapZoom(factor) {
+  const vp = document.getElementById('map-vp');
+  if (!vp) return;
+  const cx = vp.clientWidth/2, cy = vp.clientHeight/2;
+  mapScale = Math.max(0.08, Math.min(6, mapScale * factor));
+  mapOffX = cx - (cx - mapOffX) * factor;
+  mapOffY = cy - (cy - mapOffY) * factor;
+  mapApplyTransform();
 }
 
-function mapPointerDown(e) {
-  e.preventDefault();
-  const pos = getMapPos(e);
-  const tool = document.getElementById('map-tool').value;
-  if (!gardenMap) gardenMap = { elements: [] };
+function mapFitAll() {
+  const vp = document.getElementById('map-vp');
+  const layout = calcMapLayout();
+  if (!vp || !Object.keys(layout).length) return;
+  const xs = Object.values(layout).flatMap(p=>[p.x, p.x+p.w]);
+  const ys = Object.values(layout).flatMap(p=>[p.y, p.y+p.h]);
+  const minX=Math.min(...xs)-20, maxX=Math.max(...xs)+20;
+  const minY=Math.min(...ys)-20, maxY=Math.max(...ys)+20;
+  const s = Math.min(vp.clientWidth/(maxX-minX), vp.clientHeight/(maxY-minY), 2);
+  mapScale = s;
+  mapOffX = (vp.clientWidth  - (maxX-minX)*s)/2 - minX*s;
+  mapOffY = (vp.clientHeight - (maxY-minY)*s)/2 - minY*s;
+  mapApplyTransform();
+}
 
-  if (tool === 'select' || tool === 'delete') {
-    mapSelected = null;
-    for (let i = gardenMap.elements.length - 1; i >= 0; i--) {
-      const el = gardenMap.elements[i];
-      if (el.type === 'rect') {
-        if (pos.x >= el.x && pos.x <= el.x+el.w && pos.y >= el.y && pos.y <= el.y+el.h) {
-          if (tool === 'delete') { gardenMap.elements.splice(i,1); saveGardenMap(); drawGardenMap(); return; }
-          mapSelected = i;
-          document.getElementById('map-crop-panel').style.display = 'block';
-          const sel = document.getElementById('map-crop-select');
-          sel.value = el.cropId || '';
-          break;
-        }
-      }
+function renderMapWorld() {
+  const world = document.getElementById('map-world');
+  if (!world) return;
+  const layout = calcMapLayout();
+  const letters = mapFieldLetters();
+  const isLight = document.body.classList.contains('light');
+
+  // Single accent color — use app's accent variable
+  const ACCENT = isLight ? '#b45309' : '#34d399';
+  const BED_BORDER_EMPTY = isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)';
+  const BED_BG_EMPTY     = isLight ? 'rgba(0,0,0,0.03)'  : 'rgba(255,255,255,0.04)';
+  const BED_BG_FILLED    = isLight ? 'rgba(180,83,9,0.1)' : 'rgba(52,211,153,0.12)';
+  const FIELD_BG         = isLight ? 'rgba(180,83,9,0.06)': 'rgba(52,211,153,0.08)';
+  const FIELD_BORDER     = isLight ? 'rgba(180,83,9,0.2)' : 'rgba(52,211,153,0.2)';
+  const LABEL_COLOR      = isLight ? '#8b6240' : '#6ee7b7';
+  const LEDIG_COLOR      = isLight ? 'rgba(0,0,0,0.2)'   : 'rgba(255,255,255,0.2)';
+  const GANGVEI_BG       = isLight ? 'rgba(0,0,0,0.03)'  : 'rgba(255,255,255,0.03)';
+
+  // World size
+  let maxX = 200, maxY = 200;
+  Object.values(layout).forEach(p => { maxX = Math.max(maxX, p.x+p.w+60); maxY = Math.max(maxY, p.y+p.h+60); });
+  (gardenMap.extras||[]).forEach(e => { maxX = Math.max(maxX, e.x+e.w+40); maxY = Math.max(maxY, e.y+e.h+40); });
+  world.style.width = maxX + 'px';
+  world.style.height = maxY + 'px';
+
+  let html = '';
+
+  // Extra elements
+  (gardenMap.extras||[]).forEach((el, i) => {
+    html += `<div data-extra="${i}" style="position:absolute;left:${el.x}px;top:${el.y}px;
+      width:${el.w}px;height:${el.h}px;border:2px dashed ${BED_BORDER_EMPTY};
+      background:${BED_BG_EMPTY};border-radius:6px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:11px;color:${LEDIG_COLOR};font-family:Georgia,serif;
+      cursor:pointer;box-sizing:border-box">${el.label}</div>`;
+  });
+
+  // Field backgrounds
+  letters.forEach(letter => {
+    const beds = BED_IDS.filter(id => (id.match(/^([A-Za-z]+)/)?.[1]||'A') === letter);
+    const ps = beds.map(id => layout[id]).filter(Boolean);
+    if (!ps.length) return;
+    const fs = mapFieldSettings(letter);
+    const gangPx = Math.round(fs.gangvei * MAP_PX_PER_M);
+    const pad = Math.max(6, Math.round(gangPx * 0.3));
+    const minX = Math.min(...ps.map(p=>p.x)) - pad;
+    const minY = Math.min(...ps.map(p=>p.y)) - pad - 18;
+    const maxXX = Math.max(...ps.map(p=>p.x+p.w)) + pad;
+    const maxYY = Math.max(...ps.map(p=>p.y+p.h)) + pad;
+
+    // Gangvei strips between beds
+    beds.slice(0,-1).forEach((id, i) => {
+      const p = layout[id], pn = layout[beds[i+1]];
+      if (!p || !pn) return;
+      html += `<div style="position:absolute;left:${p.x+p.w}px;top:${p.y}px;
+        width:${pn.x-p.x-p.w}px;height:${p.h}px;
+        background:${GANGVEI_BG};pointer-events:none"></div>`;
+    });
+
+    html += `<div style="position:absolute;left:${minX}px;top:${minY}px;
+      width:${maxXX-minX}px;height:${maxYY-minY}px;
+      background:${FIELD_BG};border:1px solid ${FIELD_BORDER};
+      border-radius:10px;pointer-events:none">
+      <div style="padding:3px 8px;font-size:9px;color:${LABEL_COLOR};font-weight:700;
+        letter-spacing:0.18em;text-transform:uppercase">FELT ${letter}
+        <span style="font-weight:400;opacity:0.6;font-size:8px">
+          ${fs.orientation==='portrait'?'↕':'↔'} ${fs.gangvei}m
+        </span>
+      </div>
+    </div>`;
+  });
+
+  // Beds
+  BED_IDS.forEach(id => {
+    const p = layout[id];
+    if (!p) return;
+    const bedCrops = getCropsInBed(id);
+    const isEmpty = bedCrops.length === 0;
+    const bg = isEmpty ? BED_BG_EMPTY : BED_BG_FILLED;
+    const border = isEmpty ? BED_BORDER_EMPTY : ACCENT;
+
+    // 1 emoji per meter of bed length
+    let inner = '';
+    if (isEmpty) {
+      inner = `<span style="font-size:8px;color:${LEDIG_COLOR};font-family:Georgia,serif">ledig</span>`;
+    } else {
+      const sz = bedSizes[id] || {length:11, width:1.2};
+      const fs = mapFieldSettings(id.match(/^([A-Za-z]+)/)?.[1]||'A');
+      const isPortrait = fs.orientation === 'portrait';
+      const lengthPx = isPortrait ? p.h : p.w;
+      const emojiSize = Math.max(8, Math.min(20, Math.floor(p.h * 0.55)));
+      // How many emojis fit along the length: 1 per meter
+      const perMeter = 1;
+      const meters = isPortrait ? sz.length : sz.length;
+      const totalSlots = Math.max(1, Math.round(meters * perMeter));
+      // Build sequence: repeat crops to fill slots
+      const seq = [];
+      for (let i = 0; i < totalSlots; i++) seq.push(bedCrops[i % bedCrops.length].emoji);
+      // But cap at what fits visually (emojiSize+2 px each)
+      const maxFit = Math.max(1, Math.floor(lengthPx / (emojiSize + 2)));
+      const shown = seq.slice(0, maxFit);
+      const leftover = totalSlots - shown.length;
+      const isRow = !isPortrait;
+
+      inner = `<div style="display:flex;flex-direction:${isRow?'row':'column'};
+        align-items:center;justify-content:center;
+        gap:1px;padding:2px;width:100%;height:100%;overflow:hidden;pointer-events:none">
+        ${shown.map(e => `<span style="font-size:${emojiSize}px;line-height:1">${e}</span>`).join('')}
+        ${leftover > 0 ? `<span style="font-size:7px;color:${LEDIG_COLOR};flex-shrink:0">+${leftover}</span>` : ''}
+      </div>`;
     }
-    if (mapSelected === null) document.getElementById('map-crop-panel').style.display = 'none';
-    drawGardenMap();
-    return;
-  }
 
-  mapDrawing = true;
-  mapStart = pos;
-  if (tool === 'free') mapFreePoints = [pos];
-}
+    html += `<div data-bed="${id}" style="position:absolute;left:${p.x}px;top:${p.y}px;
+      width:${p.w}px;height:${p.h}px;background:${bg};
+      border:1.5px solid ${border};border-radius:4px;
+      box-sizing:border-box;cursor:pointer;overflow:hidden;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      user-select:none">
+      <div style="position:absolute;top:2px;left:3px;font-size:7px;color:${ACCENT};
+        font-weight:700;line-height:1;font-family:Georgia,serif;pointer-events:none">${id}</div>
+      ${inner}
+    </div>`;
+  });
 
-function mapPointerMove(e) {
-  if (!mapDrawing) return;
-  e.preventDefault();
-  const pos = getMapPos(e);
-  const tool = document.getElementById('map-tool').value;
-  drawGardenMap();
-  mapCtx.strokeStyle = 'var(--accent)';
-  mapCtx.lineWidth = 2;
-  mapCtx.setLineDash([4,4]);
-  if (tool === 'rect') {
-    mapCtx.strokeRect(mapStart.x, mapStart.y, pos.x-mapStart.x, pos.y-mapStart.y);
-  } else if (tool === 'free') {
-    mapFreePoints.push(pos);
-    mapCtx.beginPath();
-    mapFreePoints.forEach((p,i) => i===0 ? mapCtx.moveTo(p.x,p.y) : mapCtx.lineTo(p.x,p.y));
-    mapCtx.stroke();
-  }
-  mapCtx.setLineDash([]);
-}
+  world.innerHTML = html;
+  mapApplyTransform();
 
-function mapPointerUp(e) {
-  if (!mapDrawing) return;
-  mapDrawing = false;
-  const pos = getMapPos(e);
-  const tool = document.getElementById('map-tool').value;
-  if (!gardenMap) gardenMap = { elements: [] };
-  const colorIdx = gardenMap.elements.length % MAP_COLORS.length;
-
-  if (tool === 'rect') {
-    const w = pos.x - mapStart.x, h = pos.y - mapStart.y;
-    if (Math.abs(w) < 10 || Math.abs(h) < 10) return;
-    gardenMap.elements.push({ type:'rect', x:Math.min(mapStart.x,pos.x), y:Math.min(mapStart.y,pos.y),
-      w:Math.abs(w), h:Math.abs(h), color:MAP_COLORS[colorIdx], label:'Seng '+(gardenMap.elements.length+1), cropId:'' });
-  } else if (tool === 'free' && mapFreePoints.length > 3) {
-    gardenMap.elements.push({ type:'free', points:mapFreePoints, color:MAP_COLORS[colorIdx], label:'Seng '+(gardenMap.elements.length+1), cropId:'' });
-  }
-  saveGardenMap();
-  drawGardenMap();
-}
-
-function drawGardenMap() {
-  if (!mapCtx) return;
-  mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
-
-  // Grid
-  mapCtx.strokeStyle = 'rgba(128,128,128,0.1)';
-  mapCtx.lineWidth = 1;
-  for (let x = 0; x < mapCanvas.width; x += 40) { mapCtx.beginPath(); mapCtx.moveTo(x,0); mapCtx.lineTo(x,mapCanvas.height); mapCtx.stroke(); }
-  for (let y = 0; y < mapCanvas.height; y += 40) { mapCtx.beginPath(); mapCtx.moveTo(0,y); mapCtx.lineTo(mapCanvas.width,y); mapCtx.stroke(); }
-
-  if (!gardenMap) return;
-  gardenMap.elements.forEach((el, i) => {
-    const isSelected = i === mapSelected;
-    mapCtx.strokeStyle = isSelected ? '#ffffff' : el.color;
-    mapCtx.lineWidth = isSelected ? 2.5 : 1.5;
-    mapCtx.fillStyle = el.color + '33';
-    mapCtx.setLineDash(isSelected ? [5,3] : []);
-
-    if (el.type === 'rect') {
-      mapCtx.fillRect(el.x, el.y, el.w, el.h);
-      mapCtx.strokeRect(el.x, el.y, el.w, el.h);
-      // Label
-      mapCtx.setLineDash([]);
-      mapCtx.fillStyle = el.color;
-      mapCtx.font = 'bold 11px Georgia';
-      mapCtx.fillText(el.label, el.x+5, el.y+14);
-      if (el.cropId) {
-        const crop = crops.find(c => c.id == el.cropId);
-        if (crop) {
-          mapCtx.font = '13px Georgia';
-          mapCtx.fillStyle = '#ffffff';
-          mapCtx.fillText(crop.emoji+' '+crop.name, el.x+5, el.y+el.h/2+6);
-        }
-      }
-    } else if (el.type === 'free' && el.points.length > 1) {
-      mapCtx.beginPath();
-      el.points.forEach((p,j) => j===0 ? mapCtx.moveTo(p.x,p.y) : mapCtx.lineTo(p.x,p.y));
-      mapCtx.closePath();
-      mapCtx.fill();
-      mapCtx.stroke();
-      mapCtx.setLineDash([]);
-      mapCtx.fillStyle = el.color;
-      mapCtx.font = 'bold 11px Georgia';
-      mapCtx.fillText(el.label, el.points[0].x+5, el.points[0].y+14);
-    }
-    mapCtx.setLineDash([]);
+  // Bed click events
+  world.querySelectorAll('[data-bed]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      world.querySelectorAll('[data-bed]').forEach(b => b.style.outline = '');
+      el.style.outline = `2px solid ${isLight ? '#b45309' : 'white'}`;
+      showMapBedInfo(el.dataset.bed);
+    });
   });
 }
 
-function assignCropToMapBed() {
-  if (mapSelected === null || !gardenMap) return;
-  const cropId = document.getElementById('map-crop-select').value;
-  gardenMap.elements[mapSelected].cropId = cropId ? +cropId : '';
-  saveGardenMap();
-  drawGardenMap();
+// ── Touch events (pan + pinch) ──────────────────────────────────
+function mapTouchStart(e) {
+  e.preventDefault();
+  const touches = e.touches;
+  if (touches.length === 1) {
+    mapTouch1 = { id: touches[0].identifier, x: touches[0].clientX, y: touches[0].clientY, ox: mapOffX, oy: mapOffY };
+    mapTouch2 = null;
+  } else if (touches.length === 2) {
+    mapTouch1 = { id: touches[0].identifier, x: touches[0].clientX, y: touches[0].clientY };
+    mapTouch2 = { id: touches[1].identifier, x: touches[1].clientX, y: touches[1].clientY };
+    mapPinchDist  = Math.hypot(mapTouch2.x - mapTouch1.x, mapTouch2.y - mapTouch1.y);
+    mapPinchScale = mapScale;
+    mapPinchOX    = mapOffX;
+    mapPinchOY    = mapOffY;
+  }
 }
 
-function renameMapBed() {
-  if (mapSelected === null || !gardenMap) return;
-  const el = gardenMap.elements[mapSelected];
-  const name = prompt('Gi navn til seng:', el.label);
-  if (name) { el.label = name; saveGardenMap(); drawGardenMap(); }
+function mapTouchMove(e) {
+  e.preventDefault();
+  const touches = e.touches;
+  if (touches.length === 1 && mapTouch1 && !mapTouch2) {
+    const t = touches[0];
+    mapOffX = mapTouch1.ox + (t.clientX - mapTouch1.x);
+    mapOffY = mapTouch1.oy + (t.clientY - mapTouch1.y);
+    mapApplyTransform();
+  } else if (touches.length === 2 && mapTouch1 && mapTouch2) {
+    const t1 = touches[0], t2 = touches[1];
+    const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    const midX = (t1.clientX + t2.clientX) / 2;
+    const midY = (t1.clientY + t2.clientY) / 2;
+    const origMidX = (mapTouch1.x + mapTouch2.x) / 2;
+    const origMidY = (mapTouch1.y + mapTouch2.y) / 2;
+    const f = dist / mapPinchDist;
+    mapScale = Math.max(0.05, Math.min(8, mapPinchScale * f));
+    mapOffX = midX - (origMidX - mapPinchOX) * f - (origMidX - midX);
+    mapOffY = midY - (origMidY - mapPinchOY) * f - (origMidY - midY);
+    mapApplyTransform();
+  }
 }
 
-function clearGardenMap() {
-  if (!confirm('Nullstille kartet?')) return;
-  gardenMap = { elements: [] };
-  saveGardenMap();
-  drawGardenMap();
+function mapTouchEnd(e) {
+  e.preventDefault();
+  if (e.touches.length === 0) {
+    mapTouch1 = null; mapTouch2 = null;
+  } else if (e.touches.length === 1) {
+    const t = e.touches[0];
+    mapTouch1 = { id: t.identifier, x: t.clientX, y: t.clientY, ox: mapOffX, oy: mapOffY };
+    mapTouch2 = null;
+  }
 }
+
+// ── Mouse events (desktop pan) ───────────────────────────────────
+function mapMouseDown(e) {
+  e.preventDefault();
+  _mapMouseActive = true;
+  mapMouseX = e.clientX; mapMouseY = e.clientY;
+  mapMouseOX = mapOffX;  mapMouseOY = mapOffY;
+  const onMove = ev => {
+    if (!_mapMouseActive) return;
+    mapOffX = mapMouseOX + (ev.clientX - mapMouseX);
+    mapOffY = mapMouseOY + (ev.clientY - mapMouseY);
+    mapApplyTransform();
+  };
+  const onUp = () => {
+    _mapMouseActive = false;
+    window.removeEventListener('mousemove', onMove);
+    window.removeEventListener('mouseup', onUp);
+  };
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+}
+
+// ── Bed info bar ─────────────────────────────────────────────────
+function showMapBedInfo(bedId) {
+  const bedCrops = getCropsInBed(bedId);
+  const sz = bedSizes[bedId]||{length:'?',width:'?'};
+  const bar = document.getElementById('map-infobar');
+  if (!bar) return;
+  bar.innerHTML = `
+    <strong style="color:#6ee7b7;flex-shrink:0">Seng ${bedId}</strong>
+    <span style="color:#6b7280;font-size:11px;flex-shrink:0">${sz.length}m × ${sz.width}m</span>
+    <span style="color:#d1fae5;flex:1;font-size:12px">
+      ${bedCrops.length ? bedCrops.map(c=>c.emoji+' '+c.name).join(', ') : '— Ledig'}
+    </span>
+    <button onclick="closeGardenMap();showTab('senger');setTimeout(()=>selectBed('${bedId}'),100)"
+      style="padding:4px 10px;border-radius:6px;border:1px solid rgba(52,211,153,0.4);
+      background:rgba(52,211,153,0.1);color:#6ee7b7;cursor:pointer;font-size:11px;
+      font-family:inherit;flex-shrink:0">Åpne seng →</button>`;
+}
+
+// ── Feltinnstillinger modal ──────────────────────────────────────
+function openMapSettings() {
+  document.getElementById('map-settings-modal')?.remove();
+  const letters = mapFieldLetters();
+  const modal = document.createElement('div');
+  modal.id = 'map-settings-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:6000;display:flex;align-items:flex-end;justify-content:center';
+
+  const rows = letters.map(letter => {
+    const fs = mapFieldSettings(letter);
+    const beds = BED_IDS.filter(id => (id.match(/^([A-Za-z]+)/)?.[1]||'A') === letter);
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="width:52px;font-size:13px;color:var(--accent-soft);font-weight:700">Felt ${letter}</div>
+      <div style="font-size:10px;color:var(--text-muted);flex-shrink:0">${beds.length} senger</div>
+      <select onchange="updateMapFieldSetting('${letter}','orientation',this.value)"
+        style="padding:5px 8px;border-radius:6px;border:1px solid var(--border);
+        background:var(--bg-input);color:var(--text-head);font-size:12px;font-family:inherit">
+        <option value="landscape" ${fs.orientation==='landscape'?'selected':''}>↔ Liggende</option>
+        <option value="portrait"  ${fs.orientation==='portrait' ?'selected':''}>↕ Stående</option>
+      </select>
+      <div style="display:flex;align-items:center;gap:5px">
+        <span style="font-size:11px;color:var(--text-muted)">Gangvei:</span>
+        <input type="number" min="0.3" max="3" step="0.1" value="${fs.gangvei}"
+          onchange="updateMapFieldSetting('${letter}','gangvei',+this.value)"
+          style="width:55px;padding:5px 7px;border-radius:6px;border:1px solid var(--border);
+          background:var(--bg-input);color:var(--text-head);font-size:12px;font-family:inherit">
+        <span style="font-size:11px;color:var(--text-muted)">m</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  modal.innerHTML = `
+    <div style="background:var(--bg-modal);border:1px solid var(--border-accent);border-radius:20px 20px 0 0;
+      padding:20px;width:100%;max-width:600px;max-height:88vh;overflow-y:auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-size:15px;color:var(--accent-soft)">⚙ Feltinnstillinger</div>
+        <button onclick="document.getElementById('map-settings-modal').remove()"
+          style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:22px;line-height:1">×</button>
+      </div>
+
+      <!-- Visual field position editor -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.08em;text-transform:uppercase">
+          Feltplassering — dra feltene dit de er i virkeligheten
+        </div>
+        <div id="field-pos-canvas" style="position:relative;width:100%;height:220px;
+          background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+          overflow:hidden;touch-action:none;
+          background-image:radial-gradient(circle at 1px 1px, rgba(128,128,128,0.15) 1px, transparent 0);
+          background-size:16px 16px">
+        </div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:5px;text-align:center">
+          Dra feltene rundt for å matche den fysiske hagen din
+        </div>
+      </div>
+
+      <!-- Per-field settings -->
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.08em;text-transform:uppercase">Orientering og gangvei per felt</div>
+      ${rows}
+
+      <button onclick="applyAndCloseMapSettings()"
+        style="width:100%;margin-top:16px;padding:12px;border-radius:10px;
+        border:1px solid var(--accent);background:var(--accent-bg);
+        color:var(--accent-soft);cursor:pointer;font-size:14px;font-family:inherit">
+        ✓ Bruk innstillinger
+      </button>
+    </div>`;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  renderFieldPosCanvas();
+}
+
+function applyAndCloseMapSettings() {
+  document.getElementById('map-settings-modal')?.remove();
+  saveGardenMap();
+  // Reset field positions so they recalculate from new settings
+  if (gardenMap.fieldPositions) {
+    Object.keys(gardenMap.fieldPositions).forEach(k => delete gardenMap.fieldPositions[k]);
+  }
+  // Re-apply positions from the mini-canvas drag state
+  renderMapWorld();
+  mapFitAll();
+}
+
+function renderFieldPosCanvas() {
+  const canvas = document.getElementById('field-pos-canvas');
+  if (!canvas) return;
+  const letters = mapFieldLetters();
+  if (!gardenMap.fieldGrid) gardenMap.fieldGrid = {};
+
+  // Ensure all fields have a grid position
+  // Pack them into a single column by default
+  letters.forEach((letter, i) => {
+    if (!gardenMap.fieldGrid[letter]) {
+      gardenMap.fieldGrid[letter] = { col: 0, row: i };
+    }
+  });
+
+  const CELL = 56; // px per cell
+  const PAD  = 10;
+
+  // Find grid bounds
+  const maxCol = Math.max(...letters.map(l => gardenMap.fieldGrid[l].col)) + 1;
+  const maxRow = Math.max(...letters.map(l => gardenMap.fieldGrid[l].row)) + 1;
+  const gridW  = maxCol * CELL + PAD * 2;
+  const gridH  = maxRow * CELL + PAD * 2;
+
+  canvas.style.height = Math.max(180, gridH + CELL) + 'px'; // extra row for dropping
+  canvas.innerHTML = '';
+
+  // Draw grid background
+  const totalCols = maxCol + 2; // extra columns for expansion
+  const totalRows = maxRow + 2;
+  for (let c = 0; c < totalCols; c++) {
+    for (let r = 0; r < totalRows; r++) {
+      const cell = document.createElement('div');
+      cell.style.cssText = `position:absolute;
+        left:${PAD + c*CELL}px;top:${PAD + r*CELL}px;
+        width:${CELL-1}px;height:${CELL-1}px;
+        border:1px dashed var(--border);border-radius:4px;
+        pointer-events:none`;
+      canvas.appendChild(cell);
+    }
+  }
+
+  // Render field cards
+  letters.forEach(letter => {
+    const g = gardenMap.fieldGrid[letter];
+    const fi = letters.indexOf(letter);
+    const accent = MAP_FIELD_ACCENTS[fi % MAP_FIELD_ACCENTS.length];
+    const fill   = MAP_FIELD_FILLS[fi   % MAP_FIELD_FILLS.length];
+    const beds   = BED_IDS.filter(id => (id.match(/^([A-Za-z]+)/)?.[1]||'A') === letter);
+
+    const el = document.createElement('div');
+    el.style.cssText = `position:absolute;
+      left:${PAD + g.col * CELL + 2}px;
+      top:${PAD + g.row * CELL + 2}px;
+      width:${CELL - 5}px;height:${CELL - 5}px;
+      background:${fill};border:2px solid ${accent};border-radius:8px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      cursor:grab;user-select:none;font-family:Georgia,serif;
+      box-sizing:border-box;z-index:1;transition:box-shadow 0.1s`;
+    el.innerHTML = `
+      <div style="font-size:12px;color:${accent};font-weight:700">Felt ${letter}</div>
+      <div style="font-size:9px;color:var(--text-muted)">${beds.length} senger</div>`;
+
+    // Touch drag
+    let startX, startY, origLeft, origTop, dragging = false;
+
+    function dragStart(cx, cy) {
+      dragging = true;
+      startX = cx; startY = cy;
+      origLeft = parseFloat(el.style.left);
+      origTop  = parseFloat(el.style.top);
+      el.style.cursor = 'grabbing';
+      el.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+      el.style.zIndex = '10';
+      el.style.transition = 'none';
+    }
+    function dragMove(cx, cy) {
+      if (!dragging) return;
+      el.style.left = (origLeft + cx - startX) + 'px';
+      el.style.top  = (origTop  + cy - startY) + 'px';
+    }
+    function dragEnd(cx, cy) {
+      if (!dragging) return;
+      dragging = false;
+      el.style.cursor = 'grab';
+      el.style.boxShadow = '';
+      el.style.zIndex = '1';
+      el.style.transition = 'box-shadow 0.1s';
+
+      // Convert drop position to canvas-relative coords
+      const rect = canvas.getBoundingClientRect();
+      const canvasX = cx - rect.left;
+      const canvasY = cy - rect.top;
+
+      // Snap: which cell center is closest to drop point?
+      const snapCol = Math.max(0, Math.round((canvasX - PAD - CELL/2) / CELL));
+      const snapRow = Math.max(0, Math.round((canvasY - PAD - CELL/2) / CELL));
+
+      // Find nearest empty cell
+      function cellOccupied(c, r) {
+        return letters.some(l => l !== letter &&
+          gardenMap.fieldGrid[l].col === c && gardenMap.fieldGrid[l].row === r);
+      }
+      let bestCol = snapCol, bestRow = snapRow, bestDist = Infinity;
+      if (cellOccupied(snapCol, snapRow)) {
+        for (let radius = 1; radius <= 10; radius++) {
+          for (let dc = -radius; dc <= radius; dc++) {
+            for (let dr = -radius; dr <= radius; dr++) {
+              if (Math.abs(dc) !== radius && Math.abs(dr) !== radius) continue;
+              const c = Math.max(0, snapCol + dc);
+              const r = Math.max(0, snapRow + dr);
+              const dist = Math.hypot(dc, dr);
+              if (!cellOccupied(c, r) && dist < bestDist) {
+                bestCol = c; bestRow = r; bestDist = dist;
+              }
+            }
+          }
+          if (bestDist < Infinity) break;
+        }
+      }
+      gardenMap.fieldGrid[letter] = { col: bestCol, row: bestRow };
+
+      saveGardenMap();
+      renderFieldPosCanvas();
+    }
+
+    // Touch events
+    el.addEventListener('touchstart', e => {
+      e.preventDefault(); e.stopPropagation();
+      dragStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, {passive:false});
+    el.addEventListener('touchmove', e => {
+      e.preventDefault();
+      dragMove(e.touches[0].clientX, e.touches[0].clientY);
+    }, {passive:false});
+    el.addEventListener('touchend', e => {
+      e.preventDefault();
+      dragEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    }, {passive:false});
+
+    // Mouse events
+    el.addEventListener('mousedown', e => {
+      e.preventDefault(); e.stopPropagation();
+      dragStart(e.clientX, e.clientY);
+      const onMove = ev => dragMove(ev.clientX, ev.clientY);
+      const onUp   = ev => { dragEnd(ev.clientX, ev.clientY); window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    });
+
+    canvas.appendChild(el);
+  });
+}
+
+function updateMapFieldSetting(letter, key, value) {
+  if (!gardenMap.fieldSettings) gardenMap.fieldSettings = {};
+  if (!gardenMap.fieldSettings[letter]) gardenMap.fieldSettings[letter] = {orientation:'landscape',gangvei:0.8};
+  gardenMap.fieldSettings[letter][key] = value;
+  // Re-render mini canvas when settings change
+  if (document.getElementById('field-pos-canvas')) renderFieldPosCanvas();
+}
+
+function updateMapFieldSetting(letter, key, value) {
+  if (!gardenMap.fieldSettings) gardenMap.fieldSettings = {};
+  if (!gardenMap.fieldSettings[letter]) gardenMap.fieldSettings[letter] = {orientation:'landscape',gangvei:0.8};
+  gardenMap.fieldSettings[letter][key] = value;
+  saveGardenMap();
+}
+
 
 function renderSenger() {
   const fields = ['alle', ...new Set(BED_IDS.map(id => id.match(/^([A-Za-z]+)/)?.[1] || id))].sort((a,b) => a==='alle'?-1:b==='alle'?1:a.localeCompare(b));
@@ -1031,7 +1518,7 @@ function renderSenger() {
       <h2 style="font-size:16px;font-weight:400;color:var(--text-head);margin:0">Sengekart (${BED_IDS.length} senger)</h2>
       <div style="display:flex;gap:8px">
         <button onclick="openGardenMap()" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.1);color:#60a5fa;cursor:pointer;font-size:12px;font-family:inherit">🗺 Kart</button>
-        <button onclick="openAddBed()" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(52,211,153,0.4);background:rgba(52,211,153,0.1);color:#6ee7b7;cursor:pointer;font-size:12px;font-family:inherit">+ Legg til seng</button>
+        <button onclick="openAddBed()" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(52,211,153,0.4);background:rgba(52,211,153,0.1);color:var(--accent-soft);cursor:pointer;font-size:12px;font-family:inherit">+ Legg til seng</button>
       </div>
     </div>
     <div class="filter-bar" style="margin-bottom:12px">
@@ -1059,14 +1546,14 @@ function renderSenger() {
               return `<div class="${cls}" onclick="selectBed('${bed}')">
                 <div><span class="bed-label">Seng ${bed}</span></div>
                 <div class="bed-name">${c.name}</div>
-                <div style="font-size:9px;color:#6b7280;margin-top:6px">${sz.length}m × ${sz.width}m</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:6px">${sz.length}m × ${sz.width}m</div>
               </div>`;
             } else if (bedCropList.length > 1) {
               const nameMap = {};
               bedCropList.forEach(c => { nameMap[c.name] = (nameMap[c.name] || 0) + 1; });
               const uniqueNames = Object.keys(nameMap);
               const namesHtml = uniqueNames.map((n, i) =>
-                `<span style="font-size:13px;color:#d1fae5;white-space:nowrap">${n}</span>${i < uniqueNames.length-1 ? '<span style="color:#6b7280;font-size:12px;margin:0 3px">·</span>' : ''}`
+                `<span style="font-size:13px;color:var(--text-head);white-space:nowrap">${n}</span>${i < uniqueNames.length-1 ? '<span style="color:var(--text-muted);font-size:12px;margin:0 3px">·</span>' : ''}`
               ).join('');
               return `<div class="${cls}" onclick="selectBed('${bed}')">
                 <div><span class="bed-label">Seng ${bed}</span></div>
@@ -1074,16 +1561,16 @@ function renderSenger() {
                   uniqueNames.map((n, i) => {
                     const isLast = i === uniqueNames.length - 1;
                     const lineBreak = (i % 2 === 1 && !isLast) ? '<div style="width:100%;height:0"></div>' : '';
-                    return `<span style="font-size:13px;color:#d1fae5;white-space:nowrap">${n}</span>${!isLast ? '<span style="color:#6b7280;font-size:12px;margin:0 3px">·</span>' : ''}${lineBreak}`;
+                    return `<span style="font-size:13px;color:var(--text-head);white-space:nowrap">${n}</span>${!isLast ? '<span style="color:var(--text-muted);font-size:12px;margin:0 3px">·</span>' : ''}${lineBreak}`;
                   }).join('')
                 }</div>
-                <div style="font-size:9px;color:#6b7280;margin-top:4px">${sz.length}m × ${sz.width}m</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:4px">${sz.length}m × ${sz.width}m</div>
               </div>`;
             } else {
               return `<div class="${cls}" onclick="selectBed('${bed}')">
                 <div><span class="bed-label">Seng ${bed}</span></div>
                 <div class="bed-empty">Ledig</div>
-                <div style="font-size:9px;color:#6b7280;margin-top:6px">${sz.length}m × ${sz.width}m</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:6px">${sz.length}m × ${sz.width}m</div>
               </div>`;
             }
           }).join('');
@@ -1116,40 +1603,40 @@ function renderSenger() {
               const g = calcGang(o.crop, o.spec);
               const segLen = o.end - o.start + 1;
               const hasSegment = parseBedSpec(o.spec).start !== null;
-              return `<div style="padding:12px;border-radius:10px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.15);margin-bottom:8px">
+              return `<div style="padding:12px;border-radius:10px;background:rgba(52,211,153,0.06);border:1px solid var(--border-accent);margin-bottom:8px">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
                   <span style="font-size:24px">${o.crop.emoji}</span>
                   <div style="flex:1">
-                    <div style="font-size:15px;color:#d1fae5">${o.crop.family || o.crop.name}</div>
-                    ${o.crop.family ? `<div style="font-size:11px;color:#6b7280">${o.crop.name}</div>` : ''}
-                    ${hasSegment ? `<div style="font-size:11px;color:#60a5fa">Meter ${o.start}–${o.end} (${segLen}m)</div>` : `<div style="font-size:11px;color:#6b7280">Hele sengen (${bedLen}m)</div>`}
+                    <div style="font-size:15px;color:var(--text-head)">${o.crop.family || o.crop.name}</div>
+                    ${o.crop.family ? `<div style="font-size:11px;color:var(--text-muted)">${o.crop.name}</div>` : ''}
+                    ${hasSegment ? `<div style="font-size:11px;color:#60a5fa">Meter ${o.start}–${o.end} (${segLen}m)</div>` : `<div style="font-size:11px;color:var(--text-muted)">Hele sengen (${bedLen}m)</div>`}
                   </div>
                   ${badge(o.crop.status)}
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:#6b7280">
-                  <div>Sådato: <span style="color:#d1fae5">${o.crop.sownDate||'–'}</span></div>
-                  <div>Plantedato: <span style="color:#d1fae5">${o.crop.plantedDate||'–'}</span></div>
-                  <div>Radavstand: <span style="color:#d1fae5">${o.crop.rowSpacing} cm</span></div>
-                  <div>Planteavstand: <span style="color:#d1fae5">${o.crop.plantSpacing} cm</span></div>
-                  <div>Rader: <span style="color:#d1fae5">${o.crop.rows}</span></div>
-                  <div>Antall planter: <span style="color:#34d399;font-weight:bold">${calcPlants({...o.crop, beds:[o.spec]})}</span></div>
-                  ${g !== null ? `<div>Gangavstand: <span style="color:#d1fae5">${g} cm</span></div>` : ''}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:var(--text-muted)">
+                  <div>Sådato: <span style="color:var(--text-head)">${o.crop.sownDate||'–'}</span></div>
+                  <div>Plantedato: <span style="color:var(--text-head)">${o.crop.plantedDate||'–'}</span></div>
+                  <div>Radavstand: <span style="color:var(--text-head)">${o.crop.rowSpacing} cm</span></div>
+                  <div>Planteavstand: <span style="color:var(--text-head)">${o.crop.plantSpacing} cm</span></div>
+                  <div>Rader: <span style="color:var(--text-head)">${o.crop.rows}</span></div>
+                  <div>Antall planter: <span style="color:var(--accent);font-weight:bold">${calcPlants({...o.crop, beds:[o.spec]})}</span></div>
+                  ${g !== null ? `<div>Gangavstand: <span style="color:var(--text-head)">${g} cm</span></div>` : ''}
                 </div>
-                ${o.crop.notes ? `<div style="margin-top:8px;font-size:12px;color:#9ca3af;font-style:italic">📝 ${o.crop.notes}</div>` : ''}
+                ${o.crop.notes ? `<div style="margin-top:8px;font-size:12px;color:var(--text-muted);font-style:italic">📝 ${o.crop.notes}</div>` : ''}
               </div>`;
             }).join('');
 
             const freeRows = free.map(f =>
-              `<div style="padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);margin-bottom:8px;font-size:12px;color:#6b7280">
+              `<div style="padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.08);margin-bottom:8px;font-size:12px;color:var(--text-muted)">
                 Ledig: meter ${f.start}–${f.end} (${f.end - f.start + 1}m)
               </div>`
             ).join('');
 
-            detailHtml = `<div style="grid-column:1/-1;padding:14px;border-radius:12px;background:rgba(0,0,0,0.2);border:1px solid rgba(52,211,153,0.2);margin-bottom:4px">
+            detailHtml = `<div style="grid-column:1/-1;padding:14px;border-radius:12px;background:rgba(0,0,0,0.2);border:1px solid var(--border-accent);margin-bottom:4px">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                <div style="font-size:13px;color:#6ee7b7">Seng ${bed} — ${bs.length}m × ${bs.width}m</div>
+                <div style="font-size:13px;color:var(--accent-soft)">Seng ${bed} — ${bs.length}m × ${bs.width}m</div>
                 <div style="display:flex;gap:8px;align-items:center">
-                  <button onclick="openBedSizeEdit('${bed}')" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);border-radius:8px;color:#6ee7b7;cursor:pointer;padding:4px 10px;font-size:11px;font-family:inherit">Endre størrelse</button>
+                  <button onclick="openBedSizeEdit('${bed}')" style="background:rgba(52,211,153,0.1);border:1px solid var(--border-accent);border-radius:8px;color:var(--accent-soft);cursor:pointer;padding:4px 10px;font-size:11px;font-family:inherit">Endre størrelse</button>
                   ${getCropsInBed(bed).length === 0 ? `<button onclick="deleteBed('${bed}')" style="padding:4px 10px;border-radius:8px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:#f87171;cursor:pointer;font-size:11px;font-family:inherit">🗑 Slett</button>` : ''}
                 </div>
               </div>
@@ -1267,19 +1754,20 @@ function renderVekster() {
   document.getElementById('tab-vekster').innerHTML = `
     <button class="add-btn" onclick="openAddCrop()">+ Legg til vekst</button>
     <div style="display:flex;align-items:stretch;gap:6px;margin-bottom:14px">
-      <div style="display:flex;flex-shrink:0;border-radius:20px;border:1px solid rgba(255,255,255,0.15);overflow:hidden">
-        <button onclick="toggleFilterMenu(event)" id="filter-btn" style="padding:0 10px;background:rgba(255,255,255,0.04);color:${cropFilter==='alle'?'#9ca3af':'#6ee7b7'};cursor:pointer;font-size:10px;font-family:inherit;border:none;white-space:nowrap">${cropFilter==='alle'?'Alle statuser':STATUS[cropFilter].label}</button>
+      <div style="display:flex;flex-shrink:0;border-radius:20px;border:1px solid var(--border);overflow:hidden">
+        <button onclick="toggleFilterMenu(event)" id="filter-btn" style="padding:0 10px;background:var(--bg-card);color:${cropFilter==='alle'?'#9ca3af':'#6ee7b7'};cursor:pointer;font-size:10px;font-family:inherit;border:none;white-space:nowrap">${cropFilter==='alle'?'Alle statuser':STATUS[cropFilter].label}</button>
       </div>
-      <div style="flex:1;display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:4px 10px;gap:6px">
-        <span style="color:#4b5563;font-size:12px">⌕</span>
-        <input id="search-input" type="text" placeholder="Søk…" value="${cropSearch}" oninput="onSearchInput()" onkeydown="onSearchKey(event)" style="background:transparent;border:none;outline:none;color:#d1fae5;font-size:11px;font-family:inherit;width:100%;caret-color:#34d399" autocomplete="off">
-        ${cropSearch ? `<button onclick="clearSearch()" style="background:transparent;border:none;color:#6b7280;cursor:pointer;font-size:12px;padding:0;line-height:1">✕</button>` : ''}
+      <div style="flex:1;display:flex;align-items:center;background:var(--task-bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;gap:6px">
+        <span style="color:var(--text-dim);font-size:12px">⌕</span>
+        <input id="search-input" type="text" placeholder="Søk…" value="${cropSearch}" oninput="onSearchInput()" onkeydown="onSearchKey(event)" style="background:transparent;border:none;outline:none;color:var(--text-head);font-size:11px;font-family:inherit;width:100%;caret-color:var(--accent)" autocomplete="off">
+        ${cropSearch ? `<button onclick="clearSearch()" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:0;line-height:1">✕</button>` : ''}
       </div>
-      <div style="display:flex;flex-shrink:0;border-radius:20px;border:1px solid rgba(255,255,255,0.15);overflow:hidden">
-        <button onclick="toggleSortDir()" style="padding:0 7px;background:rgba(255,255,255,0.04);color:#9ca3af;cursor:pointer;font-size:11px;font-family:inherit;border:none;border-right:1px solid rgba(255,255,255,0.15)">${dirSymbol}</button>
-        <button onclick="toggleSortMenu(event)" id="sort-btn" style="padding:0 8px;background:rgba(255,255,255,0.04);color:#9ca3af;cursor:pointer;font-size:10px;font-family:inherit;border:none;white-space:nowrap">${currentSortLabel}</button>
+      <div style="display:flex;flex-shrink:0;border-radius:20px;border:1px solid var(--border);overflow:hidden">
+        <button onclick="toggleSortDir()" style="padding:0 7px;background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:11px;font-family:inherit;border:none;border-right:1px solid rgba(255,255,255,0.15)">${dirSymbol}</button>
+        <button onclick="toggleSortMenu(event)" id="sort-btn" style="padding:0 8px;background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:10px;font-family:inherit;border:none;white-space:nowrap">${currentSortLabel}</button>
       </div>
     </div>
+    <div id="crop-list">
     ${sortedFiltered.map(c => {
       const s = STATUS[c.status];
       const plantCount = calcPlants(c);
@@ -1296,18 +1784,18 @@ function renderVekster() {
             ${badge(c.status)}
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 12px;background:rgba(52,211,153,0.07);border-radius:10px;border:1px solid rgba(52,211,153,0.15)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 12px;background:rgba(52,211,153,0.07);border-radius:10px;border:1px solid var(--border-accent)">
           <span style="font-size:20px">🌿</span>
           <div>
-            <div style="font-size:22px;font-weight:300;color:#34d399;line-height:1">${plantCount}</div>
-            <div style="font-size:10px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase">planter totalt</div>
+            <div style="font-size:22px;font-weight:300;color:var(--accent);line-height:1">${plantCount}</div>
+            <div style="font-size:10px;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase">planter totalt</div>
           </div>
           ${calcValue(c) !== null ? `
           <div style="margin-left:auto;text-align:right">
             <div style="font-size:18px;font-weight:300;color:#fbbf24;line-height:1">~${calcValue(c).toLocaleString('nb-NO')} kr</div>
-            <div style="font-size:10px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase">est. verdi</div>
+            <div style="font-size:10px;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase">est. verdi</div>
           </div>` : ''}
-          ${c.beds.length > 1 && calcValue(c) === null ? `<div style="margin-left:auto;font-size:11px;color:#6b7280">${c.beds.map(b => {
+          ${c.beds.length > 1 && calcValue(c) === null ? `<div style="margin-left:auto;font-size:11px;color:var(--text-muted)">${c.beds.map(b => {
             const bsCrop = {...c, beds:[b]};
             return `${b}: ${calcPlants(bsCrop)}`;
           }).join(' · ')}</div>` : ''}
@@ -1327,11 +1815,12 @@ function renderVekster() {
         ${c.notes ? `<div class="crop-notes">📝 ${c.notes}</div>` : ''}
         ` : ''}
         ${isExpanded ? `<div style="display:flex;gap:8px;margin-top:8px">
-          <button onclick="event.stopPropagation();openEditCrop(${c.id})" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:20px;color:#9ca3af;cursor:pointer;padding:8px;font-size:13px;font-family:inherit">✏️ Rediger</button>
+          <button onclick="event.stopPropagation();openEditCrop(${c.id})" style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:20px;color:var(--text-muted);cursor:pointer;padding:8px;font-size:13px;font-family:inherit">✏️ Rediger</button>
         </div>` : ''}
       </div>`;
     }).join('')}
-    ${filtered.length===0?'<p style="color:#6b7280;font-size:13px;text-align:center;padding:20px 0">Ingen vekster i denne kategorien</p>':''}`;
+    ${filtered.length===0?'<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0">Ingen vekster i denne kategorien</p>':''}
+    </div>`;
 }
 
 /* ---- CALENDAR PICKER ---- */
@@ -1491,21 +1980,67 @@ function clearSearch() {
 function onSearchInput() {
   const inp = document.getElementById('search-input');
   if (!inp) return;
-  const pos = inp.selectionStart;
   cropSearch = inp.value;
-  // Re-render only the crop list, not the whole tab (preserves keyboard on mobile)
-  renderVeksterList();
+  renderCropListOnly();
 }
 
-function renderVeksterList() {
-  // Only updates the crop list portion inside tab-vekster
-  // Called from search to avoid keyboard dismissal on mobile
-  renderVekster(); // full render is fine since we keep focus
-  // Restore focus
-  requestAnimationFrame(() => {
-    const inp = document.getElementById('search-input');
-    if (inp && document.activeElement !== inp) inp.focus();
+function renderCropListOnly() {
+  // Only re-render the crop cards — avoids dismissing mobile keyboard
+  const listEl = document.getElementById('crop-list');
+  if (!listEl) { renderVekster(); return; }
+
+  let filtered = cropFilter === 'alle' ? crops : crops.filter(c => c.status === cropFilter);
+  if (cropSearch) {
+    const q = cropSearch.toLowerCase();
+    filtered = filtered.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      (c.family || '').toLowerCase().includes(q) ||
+      (c.notes || '').toLowerCase().includes(q)
+    );
+  }
+  const sortedFiltered = [...filtered].sort((a, b) => {
+    let va, vb;
+    if (cropSortField === 'calcPlants') { va = calcPlants(a); vb = calcPlants(b); }
+    else if (cropSortField === 'calcValue') { va = calcValue(a); vb = calcValue(b); }
+    else if (['sownDate','sowLog','plantedDate','plantLog'].includes(cropSortField)) {
+      va = a[cropSortField] ? new Date(a[cropSortField].split('-').reverse().join('-')).getTime() : null;
+      vb = b[cropSortField] ? new Date(b[cropSortField].split('-').reverse().join('-')).getTime() : null;
+    } else { va = a[cropSortField] ?? null; vb = b[cropSortField] ?? null; }
+    const emptyA = va === null || va === '' || va === 0;
+    const emptyB = vb === null || vb === '' || vb === 0;
+    if (emptyA && emptyB) return 0; if (emptyA) return 1; if (emptyB) return -1;
+    if (va < vb) return cropSortDir === 'asc' ? -1 : 1;
+    if (va > vb) return cropSortDir === 'asc' ? 1 : -1;
+    return 0;
   });
+
+  listEl.innerHTML = sortedFiltered.map(c => {
+    const plantCount = calcPlants(c);
+    const isExpanded = expandedCrops.has(c.id);
+    return `<div class="crop-card" onclick="toggleCropExpand(${c.id})" style="cursor:pointer">
+      <div class="crop-header">
+        <div class="crop-info">
+          <span style="font-size:26px">${c.emoji}</span>
+          <div>
+            <div class="crop-name">${c.family ? c.family : c.name}</div>
+            <div class="crop-family">${c.family ? c.name : ''}</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${badge(c.status)}</div>
+      </div>
+      ${isExpanded ? `
+      <div class="crop-meta">
+        <div>🛏 Seng: <span>${c.beds.join(', ')||'–'}</span></div>
+        <div>📐 Radavstand: <span>${c.rowSpacing} cm</span></div>
+        <div>🌱 Planteavstand: <span>${c.plantSpacing} cm</span></div>
+        <div>➕ Rader: <span>${c.rows}</span></div>
+      </div>
+      ${c.notes ? `<div class="crop-notes">📝 ${c.notes}</div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="event.stopPropagation();openEditCrop(${c.id})" style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:20px;color:var(--text-muted);cursor:pointer;padding:8px;font-size:13px;font-family:inherit">✏️ Rediger</button>
+      </div>` : ''}
+    </div>`;
+  }).join('') + (filtered.length===0 ? '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0">Ingen vekster i denne kategorien</p>' : '');
 }
 
 function onSearchKey(e) {
@@ -1530,10 +2065,10 @@ function toggleFilterMenu(e) {
 
   menu = document.createElement('div');
   menu.id = 'filter-menu';
-  menu.style.cssText = 'position:fixed;background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:4px;min-width:150px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6)';
+  menu.style.cssText = 'position:fixed;background:var(--bg-modal);border:1px solid var(--border);border-radius:12px;padding:4px;min-width:150px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6)';
   menu.innerHTML = filterOptions.map(f => `
     <button onclick="setCropFilter('${f.key}');document.getElementById('filter-menu')?.remove()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:7px 10px;border-radius:8px;border:none;background:${cropFilter===f.key?'rgba(255,255,255,0.07)':'transparent'};color:${cropFilter===f.key?'#6ee7b7':'#9ca3af'};cursor:pointer;font-size:12px;font-family:inherit;text-align:left">
-      ${f.label}${cropFilter===f.key?'<span style="color:#34d399;margin-left:8px">✓</span>':''}
+      ${f.label}${cropFilter===f.key?'<span style="color:var(--accent);margin-left:8px">✓</span>':''}
     </button>`).join('');
 
   document.body.appendChild(menu);
@@ -1569,10 +2104,10 @@ function toggleSortMenu(e) {
 
   menu = document.createElement('div');
   menu.id = 'sort-menu';
-  menu.style.cssText = 'position:fixed;background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:4px;min-width:170px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6);max-height:360px;overflow-y:auto';
+  menu.style.cssText = 'position:fixed;background:var(--bg-modal);border:1px solid var(--border);border-radius:12px;padding:4px;min-width:170px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.6);max-height:360px;overflow-y:auto';
   menu.innerHTML = SORT_FIELDS.map(f => `
     <button onclick="setSortField('${f.key}')" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:7px 10px;border-radius:8px;border:none;background:${cropSortField===f.key?'rgba(255,255,255,0.07)':'transparent'};color:${cropSortField===f.key?'#d1fae5':'#9ca3af'};cursor:pointer;font-size:12px;font-family:inherit;text-align:left">
-      ${f.label}${cropSortField===f.key ? `<span style="color:#34d399;margin-left:8px">${dirSymbol}</span>` : ''}
+      ${f.label}${cropSortField===f.key ? `<span style="color:var(--accent);margin-left:8px">${dirSymbol}</span>` : ''}
     </button>`).join('');
 
   document.body.appendChild(menu);
@@ -2006,7 +2541,7 @@ function startEditTaskText(id, el) {
   el.innerHTML = '';
   const input = document.createElement('input');
   input.value = current;
-  input.style.cssText = 'background:transparent;border:none;border-bottom:1px solid #34d399;outline:none;color:#d1fae5;font-size:14px;font-family:inherit;width:100%;caret-color:#34d399';
+  input.style.cssText = 'background:transparent;border:none;border-bottom:1px solid #34d399;outline:none;color:var(--text-head);font-size:14px;font-family:inherit;width:100%;caret-color:var(--accent)';
   el.appendChild(input);
   input.focus();
   input.select();
@@ -2166,7 +2701,7 @@ function renderKalender() {
   // Header row: week-number col + day labels
   const headerRow = '<div style="display:grid;grid-template-columns:28px repeat(7,1fr);gap:3px;margin-bottom:3px">'
     + '<div></div>'
-    + DAYS.map(d => '<div style="text-align:center;font-size:10px;color:#6b7280;padding:3px 0;letter-spacing:0.05em">'+d+'</div>').join('')
+    + DAYS.map(d => '<div style="text-align:center;font-size:10px;color:var(--text-muted);padding:3px 0;letter-spacing:0.05em">'+d+'</div>').join('')
     + '</div>';
 
   const gridRows = rows.map(row => {
@@ -2179,15 +2714,15 @@ function renderKalender() {
       const ev = events[key] || [];
       const dots = ev.slice(0,3).map(e => '<div style="width:5px;height:5px;border-radius:50%;background:'+e.color+'"></div>').join('');
       return '<div onclick="selectKalenderDay(\''+key+'\')" style="min-height:52px;padding:5px 4px;border-radius:8px;cursor:pointer;'
-        +'background:'+(isSel?'rgba(52,211,153,0.18)':isToday?'rgba(96,165,250,0.12)':'rgba(255,255,255,0.03)')
-        +';border:1px solid '+(isSel?'rgba(52,211,153,0.5)':isToday?'rgba(96,165,250,0.4)':'rgba(255,255,255,0.06)')+'">'
-        +'<div style="font-size:12px;font-weight:'+(isToday?600:400)+';color:'+(isToday?'#60a5fa':'#d1fae5')+';margin-bottom:3px">'+d+'</div>'
+        +'background:'+(isSel?'var(--accent-bg)':isToday?'rgba(96,165,250,0.12)':'var(--bg-card)')
+        +';border:1px solid '+(isSel?'var(--accent)':isToday?'rgba(96,165,250,0.4)':'var(--border)')+'">'
+        +'<div style="font-size:12px;font-weight:'+(isToday?600:400)+';color:'+(isToday?'var(--accent-soft)':'var(--text-head)')+';margin-bottom:3px">'+d+'</div>'
         +'<div style="display:flex;flex-wrap:wrap;gap:2px">'+dots+'</div>'
-        +(ev.length ? '<div style="font-size:9px;color:#6b7280;margin-top:2px">'+ev.length+'</div>' : '')
+        +(ev.length ? '<div style="font-size:9px;color:var(--text-muted);margin-top:2px">'+ev.length+'</div>' : '')
         +'</div>';
     }).join('');
     return '<div style="display:grid;grid-template-columns:28px repeat(7,1fr);gap:3px;margin-bottom:3px">'
-      +'<div style="display:flex;align-items:flex-start;justify-content:center;padding-top:6px;font-size:9px;color:#4b5563;font-weight:600">'+wkNum+'</div>'
+      +'<div style="display:flex;align-items:flex-start;justify-content:center;padding-top:6px;font-size:9px;color:var(--text-dim);font-weight:600">'+wkNum+'</div>'
       +cols+'</div>';
   }).join('');
 
@@ -2214,7 +2749,7 @@ function renderKalender() {
     const parts = key.split('-');
     const monthName = MONTHS_SHORT[parseInt(parts[1])-1];
     return '<div style="margin-bottom:10px">'
-      +'<div style="font-size:11px;color:#6b7280;margin-bottom:4px;letter-spacing:0.05em">'+DAYS_FULL[i]+' '+parseInt(parts[2])+'. '+monthName+'</div>'
+      +'<div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;letter-spacing:0.05em">'+DAYS_FULL[i]+' '+parseInt(parts[2])+'. '+monthName+'</div>'
       +ev.map(e => {
         const isSow   = e.color === '#60a5fa';
         const isPlant = e.color === '#34d399';
@@ -2228,20 +2763,20 @@ function renderKalender() {
         const actionBtn = cropId && isSow
           ? '<button onclick="startModus(\'saa\','+cropId+')" style="padding:4px 10px;border-radius:20px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.1);color:#60a5fa;cursor:pointer;font-size:11px;font-family:inherit;flex-shrink:0">Så nå</button>'
           : cropId && isPlant
-          ? '<button onclick="startModus(\'plant\','+cropId+')" style="padding:4px 10px;border-radius:20px;border:1px solid rgba(52,211,153,0.4);background:rgba(52,211,153,0.1);color:#6ee7b7;cursor:pointer;font-size:11px;font-family:inherit;flex-shrink:0">Plant nå</button>'
+          ? '<button onclick="startModus(\'plant\','+cropId+')" style="padding:4px 10px;border-radius:20px;border:1px solid rgba(52,211,153,0.4);background:rgba(52,211,153,0.1);color:var(--accent-soft);cursor:pointer;font-size:11px;font-family:inherit;flex-shrink:0">Plant nå</button>'
           : '';
         if (e.taskId !== undefined) {
           // Task event
           const tid = typeof e.taskId === 'string' ? `'${e.taskId}'` : e.taskId;
           return '<div class="list-row" style="padding:6px 0">'
             +'<button class="check-btn" onclick="toggleTask('+tid+');renderKalender()" style="flex-shrink:0"></button>'
-            +'<div style="flex:1"><div style="font-size:13px;color:#d1fae5">'+e.label+'</div></div>'
+            +'<div style="flex:1"><div style="font-size:13px;color:var(--text-head)">'+e.label+'</div></div>'
             +'<div style="width:8px;height:8px;border-radius:50%;background:'+e.color+';flex-shrink:0"></div>'
             +'</div>';
         }
         return '<div class="list-row" style="padding:6px 0">'
           +'<span style="font-size:16px">'+e.emoji+'</span>'
-          +'<div style="flex:1"><div style="font-size:13px;color:#d1fae5">'+e.label+'</div></div>'
+          +'<div style="flex:1"><div style="font-size:13px;color:var(--text-head)">'+e.label+'</div></div>'
           +actionBtn
           +'<div style="width:8px;height:8px;border-radius:50%;background:'+e.color+';flex-shrink:0"></div>'
           +'</div>';
@@ -2251,24 +2786,24 @@ function renderKalender() {
   const ukeNum = getISOWeek(monday);
   const ukeliste = '<div class="card" style="margin-top:16px">'
     +'<div class="card-title">Ukeliste – uke '+ukeNum+'</div>'
-    +(ukelisteItems || '<div style="color:#6b7280;font-size:13px">Ingen hendelser denne uken.</div>')
+    +(ukelisteItems || '<div style="color:var(--text-muted);font-size:13px">Ingen hendelser denne uken.</div>')
     +'</div>';
 
-  const btnStyle = 'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#d1fae5;cursor:pointer;font-size:18px;padding:5px 13px;font-family:inherit';
+  const btnStyle = 'background:var(--task-bg);border:1px solid var(--border);border-radius:10px;color:var(--text-head);cursor:pointer;font-size:18px;padding:5px 13px;font-family:inherit';
 
   document.getElementById('tab-kalender').innerHTML =
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
     +'<button onclick="kalenderNav(-1)" style="'+btnStyle+'">‹</button>'
-    +'<div style="font-size:16px;color:#d1fae5">'+MONTHS[kalenderMonth]+' '+kalenderYear+'</div>'
+    +'<div style="font-size:16px;color:var(--text-head)">'+MONTHS[kalenderMonth]+' '+kalenderYear+'</div>'
     +'<button onclick="kalenderNav(1)" style="'+btnStyle+'">›</button>'
     +'</div>'
     +headerRow+gridRows
     +'<div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap">'
-    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#60a5fa"></div>Sådato</div>'
-    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#34d399"></div>Plantedato</div>'
-    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#f87171"></div>Høy</div>'
-    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#fbbf24"></div>Middels</div>'
-    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af"><div style="width:7px;height:7px;border-radius:50%;background:#6ee7b7"></div>Lav</div>'
+    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)"><div style="width:7px;height:7px;border-radius:50%;background:#60a5fa"></div>Sådato</div>'
+    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)"><div style="width:7px;height:7px;border-radius:50%;background:#34d399"></div>Plantedato</div>'
+    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)"><div style="width:7px;height:7px;border-radius:50%;background:#f87171"></div>Høy</div>'
+    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)"><div style="width:7px;height:7px;border-radius:50%;background:#fbbf24"></div>Middels</div>'
+    +'<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)"><div style="width:7px;height:7px;border-radius:50%;background:#6ee7b7"></div>Lav</div>'
     +'</div>'
     +ukeliste;
 }
@@ -2498,22 +3033,22 @@ function renderModus() {
   const sitat = modusSitat;
 
   // Title first, then quote centred below
-  const header = '<div style="font-size:13px;color:#6b7280;margin-bottom:14px">'+title+'</div>'
+  const header = '<div style="font-size:13px;color:var(--text-muted);margin-bottom:14px">'+title+'</div>'
     +'<div style="text-align:center;margin-bottom:22px;padding:0 4px">'
-    +'<div style="font-size:17px;color:#d1fae5;line-height:1.7;font-style:italic">«'+sitat.tekst+'»</div>'
-    +'<div style="font-size:13px;color:#6b7280;margin-top:8px">— '+sitat.kilde+'</div>'
+    +'<div style="font-size:17px;color:var(--text-head);line-height:1.7;font-style:italic">«'+sitat.tekst+'»</div>'
+    +'<div style="font-size:13px;color:var(--text-muted);margin-top:8px">— '+sitat.kilde+'</div>'
     +'</div>'
     +'<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;padding:14px;border-radius:12px;background:'+accentBg+';border:1px solid '+accentBorder+'">'
     +'<span style="font-size:40px">'+crop.emoji+'</span>'
-    +'<div><div style="font-size:20px;color:#d1fae5;font-weight:400">'+crop.name+'</div>'
-    +(crop.family ? '<div style="font-size:12px;color:#6b7280;margin-top:2px">'+crop.family+'</div>' : '')
+    +'<div><div style="font-size:20px;color:var(--text-head);font-weight:400">'+crop.name+'</div>'
+    +(crop.family ? '<div style="font-size:12px;color:var(--text-muted);margin-top:2px">'+crop.family+'</div>' : '')
     +'</div></div>';
 
   // Log date row
   const logLabel = isSaa ? 'Logg sådato' : 'Logg plantedato';
   const logSection = '<div style="margin-bottom:18px">'
-    +'<div style="font-size:11px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px">'+logLabel+'</div>'
-    +'<button type="button" id="modus-date-btn" onclick="openModusDatePicker()" style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:'+(logDateVal?'#d1fae5':'#6b7280')+';cursor:pointer;font-size:14px;font-family:inherit;text-align:left">'+logDateDisplay+'</button>'
+    +'<div style="font-size:11px;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px">'+logLabel+'</div>'
+    +'<button type="button" id="modus-date-btn" onclick="openModusDatePicker()" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--bg-card);color:'+(logDateVal?'#d1fae5':'#6b7280')+';cursor:pointer;font-size:14px;font-family:inherit;text-align:left">'+logDateDisplay+'</button>'
     +'<input type="hidden" id="modus-date-val" value="'+logDateVal+'">'
     +'</div>';
 
@@ -2522,9 +3057,9 @@ function renderModus() {
     const plants = calcPlants(crop);
     const sownDateVal = crop.sownDate || '–';
     const infoCell = (label, val) =>
-      '<div style="padding:12px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">'
-      +'<div style="font-size:10px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px">'+label+'</div>'
-      +'<div style="font-size:16px;color:#d1fae5">'+val+'</div>'
+      '<div style="padding:12px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border)">'
+      +'<div style="font-size:10px;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px">'+label+'</div>'
+      +'<div style="font-size:16px;color:var(--text-head)">'+val+'</div>'
       +'</div>';
     details = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'
       +infoCell('Antall planter', '<span style="font-size:26px;font-weight:300">'+plants+'</span>')
@@ -2532,8 +3067,8 @@ function renderModus() {
       +(crop.seedsPerCluster && crop.seedsPerCluster > 1 ? infoCell('Frø per klynge', '<span style="font-size:26px;font-weight:300">'+crop.seedsPerCluster+'</span>') : '')
       +'</div>';
     details += '<div style="margin-bottom:14px">'
-      +'<div style="font-size:11px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px">Notater</div>'
-      +'<textarea id="modus-notes" onchange="modusNotesChanged()" oninput="modusNotesChanged()" rows="2" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#d1fae5;font-size:11px;font-family:inherit;resize:vertical;line-height:1.5">'+escapeHtml(modusNotes[crop.id] !== undefined ? modusNotes[crop.id] : (crop.notes||''))+'</textarea>'
+      +'<div style="font-size:11px;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px">Notater</div>'
+      +'<textarea id="modus-notes" onchange="modusNotesChanged()" oninput="modusNotesChanged()" rows="2" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);font-size:11px;font-family:inherit;resize:vertical;line-height:1.5">'+escapeHtml(modusNotes[crop.id] !== undefined ? modusNotes[crop.id] : (crop.notes||''))+'</textarea>'
       +'</div>';
     details += logSection;
   } else {
@@ -2550,15 +3085,15 @@ function renderModus() {
         ['Antall planter', calcPlants(crop)],
         ['Rader', crop.rows],
       ].map(([label, val]) =>
-        '<div style="padding:12px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">'
-        +'<div style="font-size:10px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px">'+label+'</div>'
-        +'<div style="font-size:16px;color:#d1fae5">'+val+'</div>'
+        '<div style="padding:12px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border)">'
+        +'<div style="font-size:10px;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px">'+label+'</div>'
+        +'<div style="font-size:16px;color:var(--text-head)">'+val+'</div>'
         +'</div>'
       ).join('')
       +'</div>';
     details += '<div style="margin-bottom:14px">'
-      +'<div style="font-size:11px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px">Notater</div>'
-      +'<textarea id="modus-notes" onchange="modusNotesChanged()" oninput="modusNotesChanged()" rows="2" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#d1fae5;font-size:11px;font-family:inherit;resize:vertical;line-height:1.5">'+escapeHtml(modusNotes[crop.id] !== undefined ? modusNotes[crop.id] : (crop.notes||''))+'</textarea>'
+      +'<div style="font-size:11px;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px">Notater</div>'
+      +'<textarea id="modus-notes" onchange="modusNotesChanged()" oninput="modusNotesChanged()" rows="2" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);font-size:11px;font-family:inherit;resize:vertical;line-height:1.5">'+escapeHtml(modusNotes[crop.id] !== undefined ? modusNotes[crop.id] : (crop.notes||''))+'</textarea>'
       +'</div>';
     details += logSection;
   }
@@ -2567,7 +3102,7 @@ function renderModus() {
   const actions = '<div style="display:flex;gap:10px">'
     +'<button onclick="modusLogAndNext()" style="flex:1;padding:13px;border-radius:12px;border:1px solid '+accentBorder+';background:'+accentBg+';color:'+accentColor+';cursor:pointer;font-size:14px;font-family:inherit;font-weight:600">'+finishLabel+'</button>'
     +'</div>'
-    +'<button onclick="closeModal(\'modal-modus\')" style="margin-top:10px;width:100%;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#6b7280;cursor:pointer;font-size:12px;font-family:inherit">Avbryt</button>';
+    +'<button onclick="closeModal(\'modal-modus\')" style="margin-top:10px;width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit">Avbryt</button>';
 
   document.getElementById('modal-modus-inner').innerHTML = header + details + actions;
 }
@@ -2662,7 +3197,7 @@ function showModusFeedback() {
   document.getElementById('modal-modus-inner').innerHTML =
     '<div style="text-align:center;padding:20px 0">'
     +'<div style="font-size:52px;margin-bottom:16px">'+(isSaa?'🌱':'🪴')+'</div>'
-    +'<div style="font-size:22px;color:#d1fae5;margin-bottom:10px">'+feedbackIntro+'</div>'
+    +'<div style="font-size:22px;color:var(--text-head);margin-bottom:10px">'+feedbackIntro+'</div>'
     +(feedbackMsg ? '<div style="font-size:14px;color:'+accentColor+';margin-bottom:24px;line-height:1.6;font-style:italic">'+feedbackMsg+'</div>' : '<div style="margin-bottom:24px"></div>')
     +'<button onclick="closeModal(\'modal-modus\')" style="padding:13px 32px;border-radius:12px;border:1px solid '+accentBorder+';background:'+accentBg+';color:'+accentColor+';cursor:pointer;font-size:14px;font-family:inherit;font-weight:600">Lukk</button>'
     +'</div>';
@@ -2735,6 +3270,7 @@ function saveToLocal() {
       tasks: tasks.filter(t => !String(t.id).startsWith('crop-')),
       bedSizes,
       bedIDs: BED_IDS,
+      gardenMap: gardenMap || null,
       saved: new Date().toISOString(),
     };
     localStorage.setItem('mh_data', JSON.stringify(data));
@@ -2753,6 +3289,7 @@ function loadFromLocal() {
     if (data.tasks) tasks = data.tasks;
     if (data.bedSizes) bedSizes = data.bedSizes;
     if (data.bedIDs && data.bedIDs.length) BED_IDS = data.bedIDs;
+    if (data.gardenMap) gardenMap = data.gardenMap;
     return true;
   } catch(e) { return false; }
 }
@@ -3003,14 +3540,14 @@ function toggleTheme() {
 
 function applyTheme() {
   document.body.classList.toggle('light', currentTheme === 'light');
-  const btn = document.getElementById('theme-btn');
-  if (btn) btn.textContent = currentTheme === 'dark' ? '☀' : '🌙';
+  const btn = document.getElementById('theme-menu-btn');
+  if (btn) btn.textContent = currentTheme === 'dark' ? '☀ Lyst tema' : '🌙 Mørkt tema';
 }
 
 function initSync() {
   try {
-    syncKey       = localStorage.getItem('mh_sync_key') || null;
-    syncBinId     = localStorage.getItem('mh_sync_id')  || null;
+    syncKey       = localStorage.getItem('mh_sync_key') || '$2a$10$H3ZyijeCyakGbK9kSCv3U.NqxD/DZNaug3LPpodQYWWiAF270R3oq';
+    syncBinId     = localStorage.getItem('mh_sync_id')  || '69b17723c3097a1dd517e7da';
     syncConnected = !!syncKey;
   } catch(e) {}
   renderSyncBtn();
@@ -3037,27 +3574,27 @@ function gistSetup() {
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
 
   modal.innerHTML = `
-    <div style="background:#1a2e1a;border:1px solid rgba(52,211,153,0.2);border-radius:16px;padding:24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.8)">
-      <h2 style="font-size:16px;color:#6ee7b7;margin-bottom:16px;font-weight:400">☁ JSONBin synkronisering</h2>
+    <div style="background:var(--bg-modal);border:1px solid var(--border-accent);border-radius:16px;padding:24px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.8)">
+      <h2 style="font-size:16px;color:var(--accent-soft);margin-bottom:16px;font-weight:400">☁ JSONBin synkronisering</h2>
 
-      <label style="display:block;font-size:12px;color:#9ca3af;margin-bottom:6px">
+      <label style="display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px">
         Master Key
         <a href="https://jsonbin.io" target="_blank" style="color:#60a5fa;margin-left:8px;font-size:11px">Hent fra jsonbin.io →</a>
       </label>
       <input id="sync-modal-key" type="text" placeholder="$2b$10$..." value="${syncKey||''}"
-        style="width:100%;padding:10px 12px;background:#0d1a0e;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#e8f5e9;font-size:13px;font-family:monospace;margin-bottom:16px;outline:none">
+        style="width:100%;padding:10px 12px;background:var(--bg-main);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:13px;font-family:monospace;margin-bottom:16px;outline:none">
 
-      <label style="display:block;font-size:12px;color:#9ca3af;margin-bottom:6px">
-        Bin ID <span style="color:#6b7280;font-size:11px">(la stå tomt for å opprette ny)</span>
+      <label style="display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px">
+        Bin ID <span style="color:var(--text-muted);font-size:11px">(la stå tomt for å opprette ny)</span>
       </label>
       <input id="sync-modal-bin" type="text" placeholder="69b16698c3097a1dd517a6bf" value="${syncBinId||''}"
-        style="width:100%;padding:10px 12px;background:#0d1a0e;border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#e8f5e9;font-size:13px;font-family:monospace;margin-bottom:8px;outline:none">
-      <p style="font-size:11px;color:#6b7280;margin-bottom:20px">
+        style="width:100%;padding:10px 12px;background:var(--bg-main);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:13px;font-family:monospace;margin-bottom:8px;outline:none">
+      <p style="font-size:11px;color:var(--text-muted);margin-bottom:20px">
         Finn Bin ID i ☁-menyen på en annen enhet, eller på jsonbin.io under Bins.
       </p>
 
       <div style="display:flex;gap:10px">
-        <button id="sync-modal-cancel" style="flex:1;padding:11px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#9ca3af;cursor:pointer;font-size:14px">Avbryt</button>
+        <button id="sync-modal-cancel" style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:14px">Avbryt</button>
         <button id="sync-modal-save" style="flex:2;padding:11px;border-radius:8px;border:none;background:#16a34a;color:white;cursor:pointer;font-size:14px;font-weight:500">Koble til</button>
       </div>
     </div>`;
@@ -3167,6 +3704,7 @@ async function syncLoad(silent = false) {
     if (data.tasks)   tasks    = data.tasks;
     if (data.bedSizes) bedSizes = data.bedSizes;
     if (data.bedIDs && data.bedIDs.length) BED_IDS = data.bedIDs;
+    if (data.gardenMap) gardenMap = data.gardenMap;
     saveToLocal();
     clearTimeout(syncTimer); syncTimer = null;
     render();
@@ -3186,6 +3724,7 @@ async function syncSave() {
     tasks: tasks.filter(t => !String(t.id).startsWith('crop-')),
     bedSizes,
     bedIDs: BED_IDS,
+    gardenMap: gardenMap || null,
     saved: new Date().toISOString()
   };
   const payloadStr = JSON.stringify(payload);
@@ -3266,7 +3805,7 @@ function gistShowMenu() {
   if (menu) { menu.remove(); return; }
   menu = document.createElement('div');
   menu.id = 'gist-menu';
-  menu.style.cssText = 'position:fixed;background:#1a2e1a;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;min-width:210px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5)';
+  menu.style.cssText = 'position:fixed;background:var(--bg-modal);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:210px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5)';
 
   const items = [
     { label: '⬇ Last inn fra JSONBin', fn: () => { syncLoad(false); menu.remove(); } },
@@ -3322,7 +3861,7 @@ function showSyncToast(msg) {
   if (!t) {
     t = document.createElement('div');
     t.id = 'sync-toast';
-    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a2e1a;border:1px solid rgba(52,211,153,0.3);border-radius:20px;padding:8px 16px;font-size:12px;color:#6ee7b7;z-index:9999;pointer-events:none;transition:opacity 0.3s;white-space:nowrap';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--bg-modal);border:1px solid var(--border-accent);border-radius:20px;padding:8px 16px;font-size:12px;color:var(--accent-soft);z-index:9999;pointer-events:none;transition:opacity 0.3s;white-space:nowrap';
     document.body.appendChild(t);
   }
   t.textContent = msg;
