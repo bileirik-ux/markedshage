@@ -168,7 +168,7 @@
 
   /* TASKS */
   .task-section { margin-bottom: 20px; }
-  .task-priority-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; }
+  .task-priority-label { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; }
   .task-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--task-bg); border: 1px solid var(--task-border); border-radius: 10px; margin-bottom: 7px; transition: opacity 0.2s; }
   .task-row.done { opacity: 0.45; }
   .check-btn { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.2); background: transparent; cursor: pointer; flex-shrink: 0; font-size: 13px; display: flex; align-items: center; justify-content: center; color: #0d1a0e; transition: all 0.15s; }
@@ -304,7 +304,7 @@
         <button onclick="syncConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="JSONBin synkronisering" style="padding:7px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">☁</button>
         <button onclick="toggleGearMenu()" id="gear-btn" title="Innstillinger" style="padding:7px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">⚙</button>
         <div id="gear-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--bg-modal);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:190px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
-          <button onclick="toggleTheme();closeGearMenu()" id="theme-menu-btn" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:#fbbf24;font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">☀ Lyst tema</button>
+          <button onclick="toggleTheme();closeGearMenu()" id="theme-menu-btn" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:var(--text-head);font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='transparent'">☀ Lyst tema</button>
           <div style="height:1px;background:rgba(255,255,255,0.08);margin:4px 0"></div>
           <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:#60a5fa;font-family:inherit" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">⬆ Importer fra Excel<input type="file" accept=".xlsx" onchange="importFromExcel(event);closeGearMenu()" style="display:none"></label>
           <button onclick="exportToExcel();closeGearMenu()" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:var(--accent-soft);font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">⬇ Eksporter til Excel</button>
@@ -504,7 +504,7 @@ let cropSearch = "";
 let expandedCrops = new Set();
 let focusTaskIds  = new Set();   // tasks pinned to focus modal
 let taskOrder     = {};          // priority -> [id, id, ...] custom order
-let currentTheme  = 'dark';      // 'dark' or 'light'
+let currentTheme  = (localStorage.getItem('mh_theme') || 'light');
 let gardenMap     = null;        // { elements: [...] } for garden map
 let cropSortField = localStorage.getItem('mh_sort_field') || 'name';
 let cropSortDir   = localStorage.getItem('mh_sort_dir')   || 'asc';
@@ -966,7 +966,7 @@ function saveGardenMap() {
 }
 
 function initGardenMap() {
-  gardenMap = { fieldSettings: {}, fieldMeters: {}, fieldDragOffsets: {}, extras: [], locked: false };
+  gardenMap = { fieldSettings: {}, fieldMeters: {}, fieldDragOffsets: {}, extras: [], locked: false, compassAngle: 0, areaW: 0, areaH: 0, bedLabel: 'emoji' };
   mapFieldLetters().forEach(l => mapFieldSettings(l));
   initFieldMeters();
   saveGardenMap();
@@ -1048,20 +1048,27 @@ function openGardenMap() {
       <button onclick="closeGardenMap()" style="padding:6px 12px;border-radius:8px;
         border:1px solid var(--border);background:var(--bg-card);
         color:var(--text-muted);cursor:pointer;font-size:13px;font-family:inherit">✕ Lukk</button>
-      <span style="color:var(--accent-soft);font-size:13px;flex:1">🗺 Hagekart</span>
+      <span style="color:var(--accent-soft);font-size:13px;flex:1">Hagekart</span>
       <div style="display:flex;gap:4px">
         <button onclick="mapZoom(1.25)" style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);cursor:pointer;font-size:15px">+</button>
         <button onclick="mapZoom(0.8)"  style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);cursor:pointer;font-size:15px">−</button>
         <button onclick="mapFitAll()"   style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit" title="Vis hele kartet">⊞</button>
         <button onclick="openMapSettings()" style="padding:5px 10px;border-radius:7px;
-          border:1px solid rgba(251,191,36,0.4);background:rgba(251,191,36,0.08);
-          color:#fbbf24;cursor:pointer;font-size:12px;font-family:inherit">⚙ Feltinnstillinger</button>
+          border:1px solid var(--border);background:var(--bg-card);
+          color:var(--text-head);cursor:pointer;font-size:12px;font-family:inherit">⚙ Innstillinger</button>
       </div>
     </div>
     <div id="map-vp" style="flex:1;overflow:hidden;position:relative;touch-action:none;
       background-image:radial-gradient(circle at 1px 1px, rgba(128,128,128,0.12) 1px, transparent 0);
       background-size:${MAP_PX_PER_M}px ${MAP_PX_PER_M}px">
       <div id="map-world" style="position:absolute;transform-origin:0 0;will-change:transform;cursor:grab"></div>
+    </div>
+    <div id="map-compass" onclick="openMapSettings()" title="Innstillinger"
+      style="position:absolute;bottom:60px;right:10px;z-index:100;
+      width:56px;height:56px;border-radius:50%;
+      background:var(--bg-card);border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2)">
     </div>
     <div id="map-infobar" style="flex-shrink:0;min-height:44px;padding:8px 12px;
       background:var(--bg-header);border-top:1px solid var(--border-accent);
@@ -1209,33 +1216,39 @@ function renderMapWorld() {
       const bg = isEmpty ? BED_EMPTY_BG : BED_FILLED_BG;
       const bd = isEmpty ? BED_EMPTY_BD : BED_FILLED_BD;
       const bw = isSelected ? 2.5 : 1.5;
+      const useName = (gardenMap.bedLabel === 'name');
 
       let inner = '';
-      if (SHOW_EMOJI && !isEmpty) {
+      if (!isEmpty) {
         const sz = bedSizes[id] || {length:11, width:1.2};
         const fs2 = mapFieldSettings(id.match(/^([A-Za-z]+)/)?.[1]||'A');
         const isPortrait = fs2.orientation === 'portrait';
-        const total = Math.max(1, Math.round(sz.length));
-        // Emoji size: proportional to bed dimension × zoom
-        const emojiSize = Math.max(12, Math.min(
-          Math.round(Math.min(p.w, p.h) * 0.52),
-          Math.round(24 * mapScale)
-        ));
-        const flexDir = isPortrait ? 'column' : 'row';
-        const seq = Array.from({length:total}, (_,ii) => bedCrops[ii % bedCrops.length].emoji);
-        const slotPx = emojiSize + Math.round(3 * mapScale);
-        const availPx = (isPortrait ? p.h : p.w) - Math.round(8 * mapScale);
-        const maxShow = Math.max(1, Math.floor(availPx / slotPx));
-        const shown = seq.slice(0, maxShow);
-        const leftover = total - shown.length;
-        inner = `<div style="display:flex;flex-direction:${flexDir};
-          align-items:center;justify-content:space-evenly;
-          width:100%;height:100%;
-          padding:${Math.round(3*mapScale)}px;
-          overflow:hidden;box-sizing:border-box;pointer-events:none">
-          ${shown.map(e=>`<span style="font-size:${emojiSize}px;line-height:1;flex-shrink:0">${e}</span>`).join('')}
-          ${leftover>0?`<span style="font-size:${Math.max(11,Math.round(11*mapScale))}px;color:${LEDIG_COLOR};flex-shrink:0">+${leftover}</span>`:''}
-        </div>`;
+
+        if (SHOW_EMOJI && useName) {
+          inner = ''; // bed ID shown separately above
+        } else if (SHOW_EMOJI) {
+          // Emoji mode
+          const total = Math.max(1, Math.round(sz.length));
+          const emojiSize = Math.max(12, Math.min(
+            Math.round(Math.min(p.w, p.h) * 0.52),
+            Math.round(24 * mapScale)
+          ));
+          const flexDir = isPortrait ? 'column' : 'row';
+          const seq = Array.from({length:total}, (_,ii) => bedCrops[ii % bedCrops.length].emoji);
+          const slotPx = emojiSize + Math.round(3 * mapScale);
+          const availPx = (isPortrait ? p.h : p.w) - Math.round(8 * mapScale);
+          const maxShow = Math.max(1, Math.floor(availPx / slotPx));
+          const shown = seq.slice(0, maxShow);
+          const leftover = total - shown.length;
+          inner = `<div style="display:flex;flex-direction:${flexDir};
+            align-items:center;justify-content:space-evenly;
+            width:100%;height:100%;
+            padding:${Math.round(3*mapScale)}px;
+            overflow:hidden;box-sizing:border-box;pointer-events:none">
+            ${shown.map(e=>`<span style="font-size:${emojiSize}px;line-height:1;flex-shrink:0">${e}</span>`).join('')}
+            ${leftover>0?`<span style="font-size:${Math.max(11,Math.round(11*mapScale))}px;color:${LEDIG_COLOR};flex-shrink:0">+${leftover}</span>`:''}
+          </div>`;
+        }
       }
 
       html += `<div data-bed="${id}" style="position:absolute;
@@ -1245,7 +1258,8 @@ function renderMapWorld() {
         cursor:pointer;overflow:hidden;
         display:flex;flex-direction:column;align-items:center;justify-content:center;
         user-select:none">
-        ${SHOW_BED_ID ? `<div style="position:absolute;top:${Math.round(2*mapScale)}px;left:${Math.round(3*mapScale)}px;
+        ${SHOW_BED_ID && useName ? `<div style="display:flex;align-items:center;justify-content:center;
+          width:100%;height:100%;
           font-size:${idSize}px;color:${ID_COLOR};font-weight:700;line-height:1;
           font-family:Georgia,serif;pointer-events:none;white-space:nowrap">${id}</div>` : ''}
         ${inner}
@@ -1253,14 +1267,113 @@ function renderMapWorld() {
     });
   }
 
+  // Area boundary box
+  if (gardenMap.areaW > 0 && gardenMap.areaH > 0) {
+    const aW = gardenMap.areaW * S, aH = gardenMap.areaH * S;
+    const aBox = document.createElement('div');
+    aBox.style.cssText = `position:absolute;left:0;top:0;width:${aW}px;height:${aH}px;
+      border:2px dashed ${isLight?'rgba(0,0,0,0.2)':'rgba(255,255,255,0.15)'};
+      border-radius:4px;pointer-events:none;box-sizing:border-box`;
+    world.insertBefore(aBox, world.firstChild);
+    // Label
+    const aLbl = document.createElement('div');
+    aLbl.style.cssText = `position:absolute;left:6px;top:4px;
+      font-size:${Math.max(12,Math.round(11*mapScale))}px;
+      color:${isLight?'rgba(0,0,0,0.3)':'rgba(255,255,255,0.25)'};
+      font-family:Georgia,serif;pointer-events:none`;
+    aLbl.textContent = `${gardenMap.areaW}×${gardenMap.areaH}m`;
+    world.insertBefore(aLbl, world.firstChild);
+  }
+
   world.innerHTML = html;
+
+  // Re-add area box (innerHTML cleared it)
+  if (gardenMap.areaW > 0 && gardenMap.areaH > 0) {
+    const aW = gardenMap.areaW * S, aH = gardenMap.areaH * S;
+    const aBox = document.createElement('div');
+    aBox.style.cssText = `position:absolute;left:0;top:0;width:${aW}px;height:${aH}px;
+      border:2px dashed ${isLight?'rgba(0,0,0,0.2)':'rgba(255,255,255,0.15)'};
+      border-radius:4px;pointer-events:none;box-sizing:border-box;z-index:0`;
+    world.appendChild(aBox);
+    const aLbl = document.createElement('div');
+    aLbl.style.cssText = `position:absolute;left:8px;top:5px;
+      font-size:${Math.max(12,Math.round(11*mapScale))}px;
+      color:${isLight?'rgba(0,0,0,0.3)':'rgba(255,255,255,0.25)'};
+      font-family:Georgia,serif;pointer-events:none;z-index:0`;
+    aLbl.textContent = `${gardenMap.areaW} × ${gardenMap.areaH} m`;
+    world.appendChild(aLbl);
+  }
 
   world.querySelectorAll('[data-field-drag]').forEach(el => {
     attachFieldDragInMap(el, el.dataset.fieldDrag);
   });
   world.querySelectorAll('[data-bed]').forEach(el => {
-    el.addEventListener('click', e => { e.stopPropagation(); showBedPopup(el.dataset.bed); });
+    const bedLetter = el.dataset.bed.match(/^([A-Za-z]+)/)?.[1]||'A';
+    let bedDragStartX, bedDragStartY, bedDragging = false;
+
+    // Mouse: start drag only if moved more than 6px (otherwise it's a tap/click)
+    el.addEventListener('mousedown', e => {
+      bedDragStartX = e.clientX; bedDragStartY = e.clientY; bedDragging = false;
+      const fieldEl = world.querySelector(`[data-field-drag="${bedLetter}"]`);
+      const mm = ev => {
+        if (!bedDragging && Math.hypot(ev.clientX-bedDragStartX, ev.clientY-bedDragStartY) > 6) {
+          bedDragging = true;
+          if (fieldEl) fieldEl.dispatchEvent(new MouseEvent('mousedown', {bubbles:false, clientX:bedDragStartX, clientY:bedDragStartY}));
+        }
+        if (bedDragging) ev.stopPropagation();
+      };
+      const mu = () => { window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
+      window.addEventListener('mousemove', mm);
+      window.addEventListener('mouseup', mu);
+      e.stopPropagation();
+    });
+
+    // Touch: same — only proxy drag if moved > 6px
+    el.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) return;
+      bedDragStartX = e.touches[0].clientX; bedDragStartY = e.touches[0].clientY; bedDragging = false;
+      e.stopPropagation();
+    }, {passive:true});
+    el.addEventListener('touchmove', e => {
+      if (e.touches.length !== 1) return;
+      if (!bedDragging && Math.hypot(e.touches[0].clientX-bedDragStartX, e.touches[0].clientY-bedDragStartY) > 6) {
+        bedDragging = true;
+        const fieldEl = world.querySelector(`[data-field-drag="${bedLetter}"]`);
+        if (fieldEl) fieldEl.dispatchEvent(new TouchEvent('touchstart', {touches:e.touches, changedTouches:e.changedTouches, bubbles:false}));
+      }
+      if (bedDragging) e.stopPropagation();
+    }, {passive:true});
+    el.addEventListener('touchend', e => {
+      if (!bedDragging) { e.stopPropagation(); showBedPopup(el.dataset.bed); }
+      bedDragging = false;
+    }, {passive:true});
+
+    el.addEventListener('click', e => {
+      if (!bedDragging) { e.stopPropagation(); showBedPopup(el.dataset.bed); }
+    });
   });
+
+  // Update compass widget
+  const compassEl = document.getElementById('map-compass');
+  if (compassEl) {
+    const showCompass = gardenMap.showCompass !== false;
+    compassEl.style.display = showCompass ? 'flex' : 'none';
+    if (showCompass) {
+      const angle = gardenMap.compassAngle || 0;
+      const isLight2 = document.body.classList.contains('light');
+      const cN   = isLight2 ? '#6b4c2a' : '#34d399';
+      const cS   = isLight2 ? '#9c8674' : '#6b7280';
+      compassEl.innerHTML = `
+        <svg width="48" height="48" viewBox="0 0 48 48">
+          <g transform="rotate(${angle}, 24, 24)">
+            <polygon points="24,12 28,24 24,21 20,24" fill="${cN}"/>
+            <polygon points="24,36 28,24 24,27 20,24" fill="${cS}"/>
+            <text x="24" y="9" text-anchor="middle" font-size="9" fill="${cN}" font-family="Georgia" font-weight="bold">N</text>
+            <text x="24" y="46" text-anchor="middle" font-size="9" fill="${cS}" font-family="Georgia">S</text>
+          </g>
+        </svg>`;
+    }
+  }
 }
 
 
@@ -1329,6 +1442,18 @@ function showBedPopup(bedId) {
     </button>`;
 
   document.getElementById('map-overlay').appendChild(popup);
+  // Close on outside click
+  setTimeout(() => {
+    const closePopup = e => {
+      if (!popup.contains(e.target)) {
+        popup.remove();
+        mapSelectedBedId = null;
+        renderMapWorld();
+        document.getElementById('map-overlay')?.removeEventListener('click', closePopup);
+      }
+    };
+    document.getElementById('map-overlay')?.addEventListener('click', closePopup);
+  }, 50);
   renderMapWorld(); // re-render to show selection highlight
 }
 
@@ -1387,10 +1512,12 @@ function attachFieldDragInMap(el, letter) {
     if (!active) return;
     active = false;
     el.style.cursor = 'grab';
-    // Resolve overlaps in meters
     if (gardenMap.fieldMeters?.[letter]) {
       const cur = gardenMap.fieldMeters[letter];
-      const resolved = resolveOverlapMeters(cur.x, cur.y, letter);
+      // 1. Snap to alignment (same row/col as nearby fields)
+      const snapped = snapToAlignment(cur.x, cur.y, letter);
+      // 2. Resolve any overlaps after snap
+      const resolved = resolveOverlapMeters(snapped.x, snapped.y, letter);
       gardenMap.fieldMeters[letter] = resolved;
       gardenMap.fieldDragOffsets[letter] = { x: resolved.x * MAP_PX_PER_M, y: resolved.y * MAP_PX_PER_M };
     }
@@ -1427,8 +1554,10 @@ function attachFieldDragInMap(el, letter) {
 // Resolve overlap in meters, returns adjusted position
 // Snap field to row/col alignment with nearby fields
 function snapToAlignment(mx, my, movingLetter) {
-  const SNAP_THRESH = 1.5; // meters — if within this, snap to alignment
+  const THRESH = 1.5; // meters
   const letters = mapFieldLetters();
+  const ms = getFieldSizeM(movingLetter);
+  let bestDX = null, bestDY = null;
 
   for (const other of letters) {
     if (other === movingLetter) continue;
@@ -1436,17 +1565,98 @@ function snapToAlignment(mx, my, movingLetter) {
     if (!op) continue;
     const os = getFieldSizeM(other);
 
-    // Snap left edges to align (same column)
-    if (Math.abs(mx - op.x) < SNAP_THRESH) mx = op.x;
-    // Snap right edges to align
-    const ms = getFieldSizeM(movingLetter);
-    if (Math.abs((mx + ms.w) - (op.x + os.w)) < SNAP_THRESH) mx = op.x + os.w - ms.w;
-    // Snap top edges to align (same row)
-    if (Math.abs(my - op.y) < SNAP_THRESH) my = op.y;
-    // Snap bottom edges to align
-    if (Math.abs((my + ms.h) - (op.y + os.h)) < SNAP_THRESH) my = op.y + os.h - ms.h;
+    // X-axis candidates: left-left and right-right alignment
+    const xCandidates = [
+      op.x - mx,              // align left edges
+      (op.x + os.w) - (mx + ms.w), // align right edges
+    ];
+    for (const dx of xCandidates) {
+      if (Math.abs(dx) < THRESH && (bestDX === null || Math.abs(dx) < Math.abs(bestDX))) bestDX = dx;
+    }
+
+    // Y-axis candidates: top-top and bottom-bottom alignment
+    const yCandidates = [
+      op.y - my,              // align top edges
+      (op.y + os.h) - (my + ms.h), // align bottom edges
+    ];
+    for (const dy of yCandidates) {
+      if (Math.abs(dy) < THRESH && (bestDY === null || Math.abs(dy) < Math.abs(bestDY))) bestDY = dy;
+    }
   }
+
+  if (bestDX !== null) mx += bestDX;
+  if (bestDY !== null) my += bestDY;
   return { x: Math.max(0, mx), y: Math.max(0, my) };
+}
+
+function initCompassWheel() {
+  const canvas = document.getElementById('compass-wheel');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cx = 55, cy = 55, R = 48, rInner = 28;
+  const isLight = document.body.classList.contains('light');
+  const cAccent = isLight ? '#6b4c2a' : '#34d399';
+  const cDim    = isLight ? '#9c8674' : '#6b7280';
+  const cBg     = isLight ? '#fff8f0' : '#1a2e1a';
+  const cBorder = isLight ? '#d6c9b0' : '#34d399';
+  const cText   = isLight ? '#1c1410' : '#e8f5e9';
+
+  function draw(angle) {
+    ctx.clearRect(0, 0, 110, 110);
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2);
+    ctx.fillStyle = cBg; ctx.fill();
+    ctx.strokeStyle = cBorder; ctx.lineWidth = 2; ctx.stroke();
+    for (let i = 0; i < 72; i++) {
+      const a = (i * 5 * Math.PI) / 180;
+      const len = i % 18 === 0 ? 10 : i % 9 === 0 ? 6 : 3;
+      const r1 = R - 2, r2 = R - 2 - len;
+      ctx.beginPath();
+      ctx.moveTo(cx + r1*Math.sin(a), cy - r1*Math.cos(a));
+      ctx.lineTo(cx + r2*Math.sin(a), cy - r2*Math.cos(a));
+      ctx.strokeStyle = i % 18 === 0 ? cAccent : cDim;
+      ctx.lineWidth = i % 9 === 0 ? 1.5 : 0.8; ctx.stroke();
+    }
+    [['N',0],['Ø',90],['S',180],['V',270]].forEach(([label, deg]) => {
+      const a = (deg * Math.PI) / 180;
+      const r = R - 16;
+      ctx.font = 'bold 9px Georgia'; ctx.fillStyle = label==='N' ? cAccent : cDim;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(label, cx + r*Math.sin(a), cy - r*Math.cos(a));
+    });
+    const rad = (angle * Math.PI) / 180;
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(rad);
+    ctx.beginPath(); ctx.moveTo(0,-rInner); ctx.lineTo(5,0); ctx.lineTo(-5,0); ctx.closePath();
+    ctx.fillStyle = cAccent; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0,rInner); ctx.lineTo(5,0); ctx.lineTo(-5,0); ctx.closePath();
+    ctx.fillStyle = cDim; ctx.fill();
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI*2);
+    ctx.fillStyle = cText; ctx.fill();
+  }
+
+  draw(gardenMap.compassAngle || 0);
+
+  function angleFromEvent(ex, ey) {
+    const rect = canvas.getBoundingClientRect();
+    const dx = ex - rect.left - cx, dy = ey - rect.top - cy;
+    return (Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360;
+  }
+  function update(angle) {
+    const snapped = Math.round(angle);
+    gardenMap.compassAngle = snapped;
+    draw(snapped);
+    const disp = document.getElementById('compass-angle-display');
+    if (disp) disp.textContent = snapped + '°';
+    const lbl = disp?.nextElementSibling;
+    if (lbl) lbl.textContent = compassLabel(snapped);
+    saveGardenMap(); renderMapWorld();
+  }
+  let dragging = false;
+  canvas.addEventListener('mousedown', e => { dragging=true; canvas.style.cursor='grabbing'; update(angleFromEvent(e.clientX,e.clientY)); });
+  window.addEventListener('mousemove', e => { if(dragging) update(angleFromEvent(e.clientX,e.clientY)); });
+  window.addEventListener('mouseup', () => { dragging=false; canvas.style.cursor='grab'; });
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); update(angleFromEvent(e.touches[0].clientX,e.touches[0].clientY)); },{passive:false});
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); update(angleFromEvent(e.touches[0].clientX,e.touches[0].clientY)); },{passive:false});
 }
 
 function resolveOverlapMeters(mx, my, movingLetter) {
@@ -1625,7 +1835,7 @@ function openMapSettings() {
           background:var(--bg-input);color:var(--text-head);font-size:12px;font-family:inherit">
         <span style="font-size:12px;color:var(--text-muted)">m</span>
       </div>
-      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px">
         <span style="font-size:12px;color:var(--text-muted)">Senger per rad:</span>
         <input type="number" min="0" max="50" step="1" value="${fs.bedsPerRow||0}"
           onchange="updateMapFieldSetting('${letter}','bedsPerRow',+this.value)"
@@ -1636,17 +1846,86 @@ function openMapSettings() {
     </div>`;
   }).join('');
 
+  const compassAngle = gardenMap.compassAngle || 0;
+  const areaW = gardenMap.areaW || '';
+  const areaH = gardenMap.areaH || '';
+  const bedLabel = gardenMap.bedLabel || 'emoji';
+
   modal.innerHTML = `
     <div style="background:var(--bg-modal);border:1px solid var(--border-accent);border-radius:20px 20px 0 0;
       padding:20px;width:100%;max-width:600px;max-height:88vh;overflow-y:auto">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div style="font-size:15px;color:var(--accent-soft)">⚙ Feltinnstillinger</div>
+        <div style="font-size:15px;color:var(--accent-soft)">⚙ Innstillinger</div>
         <button onclick="document.getElementById('map-settings-modal').remove()"
           style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:22px;line-height:1">×</button>
       </div>
 
+      <!-- General settings -->
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.08em;text-transform:uppercase">Generelt</div>
+
+      <!-- Bed label toggle -->
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:13px;color:var(--text-head);flex:1">Vis i senger</span>
+        <div style="display:flex;gap:6px">
+          <button onclick="setMapBedLabel('emoji')" id="lbl-emoji"
+            style="padding:5px 14px;border-radius:8px;border:1px solid var(--border);
+            background:${bedLabel==='emoji'?'var(--accent-bg)':'transparent'};
+            color:${bedLabel==='emoji'?'var(--accent-soft)':'var(--text-muted)'};
+            cursor:pointer;font-size:12px;font-family:inherit">Emoji</button>
+          <button onclick="setMapBedLabel('name')" id="lbl-name"
+            style="padding:5px 14px;border-radius:8px;border:1px solid var(--border);
+            background:${bedLabel==='name'?'var(--accent-bg)':'transparent'};
+            color:${bedLabel==='name'?'var(--accent-soft)':'var(--text-muted)'};
+            cursor:pointer;font-size:12px;font-family:inherit">Navn</button>
+        </div>
+      </div>
+
+      <!-- Total area -->
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:13px;color:var(--text-head);flex:1">Totalt disponibelt areal</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="number" min="1" max="500" step="1" value="${areaW}" placeholder="Bredde"
+            onchange="gardenMap.areaW=+this.value;saveGardenMap();renderMapWorld()"
+            style="width:70px;padding:5px 7px;border-radius:6px;border:1px solid var(--border);
+            background:var(--bg-input);color:var(--text-head);font-size:12px;font-family:inherit">
+          <span style="font-size:12px;color:var(--text-muted)">×</span>
+          <input type="number" min="1" max="500" step="1" value="${areaH}" placeholder="Lengde"
+            onchange="gardenMap.areaH=+this.value;saveGardenMap();renderMapWorld()"
+            style="width:70px;padding:5px 7px;border-radius:6px;border:1px solid var(--border);
+            background:var(--bg-input);color:var(--text-head);font-size:12px;font-family:inherit">
+          <span style="font-size:12px;color:var(--text-muted)">meter</span>
+        </div>
+      </div>
+
+      <!-- Compass -->
+      <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <span style="font-size:13px;color:var(--text-head);flex:1">Kompass</span>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <span style="font-size:12px;color:var(--text-muted)">${gardenMap.showCompass!==false?'På':'Av'}</span>
+            <div onclick="toggleMapCompass()" style="width:38px;height:22px;border-radius:11px;
+              background:${gardenMap.showCompass!==false?'var(--accent)':'var(--border)'};
+              position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0">
+              <div style="position:absolute;top:3px;left:${gardenMap.showCompass!==false?'19':'3'}px;
+                width:16px;height:16px;border-radius:50%;background:white;transition:left 0.2s"></div>
+            </div>
+          </label>
+        </div>
+        ${gardenMap.showCompass!==false ? `
+        <div style="display:flex;align-items:center;gap:20px">
+          <!-- Drag wheel -->
+          <canvas id="compass-wheel" width="110" height="110"
+            style="cursor:grab;flex-shrink:0;touch-action:none"></canvas>
+          <div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Dra hjulet for å sette retning</div>
+            <div id="compass-angle-display" style="font-size:18px;color:var(--text-head);font-family:Georgia">${compassAngle}°</div>
+            <div style="font-size:12px;color:var(--accent-soft);margin-top:2px">${compassLabel(compassAngle)}</div>
+          </div>
+        </div>` : ''}
+      </div>
+
       <!-- Per-field settings -->
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.08em;text-transform:uppercase">Orientering og gangvei per felt</div>
+      <div style="font-size:12px;color:var(--text-muted);margin:12px 0 8px;letter-spacing:0.08em;text-transform:uppercase">Per felt</div>
       ${rows}
 
       <button onclick="applyAndCloseMapSettings()"
@@ -1658,7 +1937,42 @@ function openMapSettings() {
     </div>`;
 
   document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); initCompassWheel();
+});
+}
+
+
+
+function compassLabel(angle) {
+  const dirs = ['N','NØ','Ø','SØ','S','SV','V','NV'];
+  return dirs[Math.round(((angle % 360) + 360) % 360 / 45) % 8];
+}
+
+function setCompassAngle(angle) {
+  gardenMap.compassAngle = angle;
+  saveGardenMap();
+  renderMapWorld();
+  openMapSettings(); // re-open to refresh active state
+}
+
+function toggleMapCompass() {
+  gardenMap.showCompass = gardenMap.showCompass === false ? true : false;
+  saveGardenMap();
+  renderMapWorld();
+  openMapSettings();
+}
+
+function setMapBedLabel(val) {
+  gardenMap.bedLabel = val;
+  saveGardenMap();
+  renderMapWorld();
+  // Update buttons
+  ['emoji','name'].forEach(v => {
+    const btn = document.getElementById('lbl-'+v);
+    if (!btn) return;
+    btn.style.background = v === val ? 'var(--accent-bg)' : 'transparent';
+    btn.style.color = v === val ? 'var(--accent-soft)' : 'var(--text-muted)';
+  });
 }
 
 function applyAndCloseMapSettings() {
@@ -1699,8 +2013,8 @@ function renderSenger() {
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
       <h2 style="font-size:16px;font-weight:400;color:var(--text-head);margin:0">Sengekart (${BED_IDS.length} senger)</h2>
       <div style="display:flex;gap:8px">
-        <button onclick="openGardenMap()" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.1);color:#60a5fa;cursor:pointer;font-size:12px;font-family:inherit">🗺 Kart</button>
-        <button onclick="openAddBed()" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(52,211,153,0.4);background:rgba(52,211,153,0.1);color:var(--accent-soft);cursor:pointer;font-size:12px;font-family:inherit">+ Legg til seng</button>
+        <button onclick="openGardenMap()" style="padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit">Kart</button>
+        <button onclick="openAddBed()" style="padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit">+ Legg til seng</button>
       </div>
     </div>
     <div class="filter-bar" style="margin-bottom:12px">
@@ -2566,8 +2880,11 @@ function openFocusModal() {
       }
     </div>`;
   document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); initCompassWheel();
+});
 }
+
+
 
 function renderPriorityDots(taskId, currentPriority) {
   const pColors = {høy:'#f87171',middels:'#fbbf24',lav:'#6ee7b7'};
@@ -2672,7 +2989,7 @@ function renderOppgaver() {
       if (!pts.length && !autoPts.length) return '';
       return `<div class="task-section">
         <div class="task-drop-zone" data-priority="${p}" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:4px 2px;border-radius:6px;transition:background 0.15s">
-          <div style="font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:${pColors[p]}">${pLabels[p]} prioritet</div>
+          <div style="font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-head);display:flex;align-items:center;gap:6px">${pLabels[p]} prioritet <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${pColors[p]}"></span></div>
         </div>
         ${pts.map(t => {
           const tid = typeof t.id === 'string' ? `'${t.id}'` : t.id;
