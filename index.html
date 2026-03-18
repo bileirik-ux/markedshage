@@ -852,52 +852,65 @@ function mapFieldIdx(bedId) {
 function mapFieldSettings(letter) {
   if (!gardenMap.fieldSettings) gardenMap.fieldSettings = {};
   if (!gardenMap.fieldSettings[letter]) {
-    gardenMap.fieldSettings[letter] = { orientation: 'landscape', gangvei: 0.4 };
+    gardenMap.fieldSettings[letter] = { orientation: 'landscape', gangvei: 0.4, bedsPerRow: 0 }; // 0 = all in one row
   }
   return gardenMap.fieldSettings[letter];
 }
 
 // Calculate layout positions from fieldSettings + fieldGrid (snap grid)
-function calcMapLayout() {
+function calcMapLayout(scale) {
+  const S = scale || MAP_PX_PER_M; // px per meter
   const layout = {};
   const letters = mapFieldLetters();
-  if (!gardenMap.fieldGrid) gardenMap.fieldGrid = {};
+  if (!gardenMap.fieldGrid)     gardenMap.fieldGrid = {};
+  if (!gardenMap.fieldSettings) gardenMap.fieldSettings = {};
 
-  // Default grid: stack vertically in column 0
   letters.forEach((letter, i) => {
     if (!gardenMap.fieldGrid[letter]) gardenMap.fieldGrid[letter] = { col: 0, row: i };
   });
 
-  // First pass: internal layout per field
+  // First pass: internal layout per field (supporting bedsPerRow)
   const fieldLayouts = {};
   letters.forEach(letter => {
     const beds = BED_IDS.filter(id => (id.match(/^([A-Za-z]+)/)?.[1]||'A') === letter);
     const fs = mapFieldSettings(letter);
-    const isPortrait = fs.orientation === 'portrait';
-    const gangPx = Math.round(fs.gangvei * MAP_PX_PER_M);
-    let curX = 0, maxH = 0;
+    const isPortrait  = fs.orientation === 'portrait';
+    const gangPx      = Math.round(fs.gangvei * S);
+    const bedsPerRow  = fs.bedsPerRow > 0 ? fs.bedsPerRow : beds.length; // 0 = all in one row
+
     const bedLayouts = {};
-    beds.forEach(id => {
-      const sz = bedSizes[id] || {length:11, width:1.2};
-      const w = Math.round((isPortrait ? sz.width  : sz.length) * MAP_PX_PER_M);
-      const h = Math.round((isPortrait ? sz.length : sz.width ) * MAP_PX_PER_M);
-      bedLayouts[id] = { x: curX, y: 0, w, h };
-      curX += w + gangPx;
-      if (h > maxH) maxH = h;
-    });
-    fieldLayouts[letter] = { beds: bedLayouts, width: curX, height: maxH };
+    let maxRowW = 0, totalH = 0;
+    let rowStart = 0;
+    while (rowStart < beds.length) {
+      const rowBeds = beds.slice(rowStart, rowStart + bedsPerRow);
+      let curX = 0, maxH = 0;
+      rowBeds.forEach(id => {
+        const sz = bedSizes[id] || {length:11, width:1.2};
+        const w = Math.round((isPortrait ? sz.width  : sz.length) * S);
+        const h = Math.round((isPortrait ? sz.length : sz.width ) * S);
+        bedLayouts[id] = { x: curX, y: totalH, w, h };
+        curX += w + gangPx;
+        if (h > maxH) maxH = h;
+      });
+      if (curX > maxRowW) maxRowW = curX;
+      totalH += maxH + gangPx;
+      rowStart += bedsPerRow;
+    }
+    fieldLayouts[letter] = { beds: bedLayouts, width: maxRowW, height: totalH };
   });
 
-  // Second pass: position fields by grid cell
-  const padPx = Math.round(MAP_PAD_M * MAP_PX_PER_M);
+  // Second pass: use fieldGrid for positioning + field drag positions
+  const padPx = Math.round(MAP_PAD_M * S);
   const colWidths = {}, rowHeights = {};
+  const fieldGapPx = Math.round(1.0 * S); // 1m between fields
+
   letters.forEach(letter => {
     const g = gardenMap.fieldGrid[letter];
     const fl = fieldLayouts[letter];
-    const fgap = Math.round(1.0 * MAP_PX_PER_M); // 1m between fields
-    colWidths[g.col]  = Math.max(colWidths[g.col]  || 0, fl.width  + fgap);
-    rowHeights[g.row] = Math.max(rowHeights[g.row] || 0, fl.height + fgap);
+    colWidths[g.col]  = Math.max(colWidths[g.col]  || 0, fl.width  + fieldGapPx);
+    rowHeights[g.row] = Math.max(rowHeights[g.row] || 0, fl.height + fieldGapPx);
   });
+
   const colOffsets = {}, rowOffsets = {};
   let cxOff = padPx;
   [...new Set(Object.keys(colWidths).map(Number))].sort((a,b)=>a-b).forEach(c => {
@@ -907,17 +920,25 @@ function calcMapLayout() {
   [...new Set(Object.keys(rowHeights).map(Number))].sort((a,b)=>a-b).forEach(r => {
     rowOffsets[r] = ryOff; ryOff += rowHeights[r];
   });
+
+  // Apply field drag overrides (from dragging fields in the main map)
+  if (!gardenMap.fieldDragOffsets) gardenMap.fieldDragOffsets = {};
+
   letters.forEach(letter => {
-    const g = gardenMap.fieldGrid[letter];
+    const g  = gardenMap.fieldGrid[letter];
     const fl = fieldLayouts[letter];
-    const ox = colOffsets[g.col] ?? padPx;
-    const oy = rowOffsets[g.row] ?? padPx;
+    // ALWAYS use fieldMeters (in meters) × S for position — zoom-independent
+    const _fm = gardenMap.fieldMeters?.[letter] || { x: MAP_PAD_M, y: MAP_PAD_M };
+    const ox = _fm.x * S;
+    const oy = _fm.y * S;
     Object.entries(fl.beds).forEach(([id, p]) => {
       layout[id] = { x: ox + p.x, y: oy + p.y, w: p.w, h: p.h };
     });
   });
-  return layout;
+
+  return { layout, fieldLayouts, colOffsets, rowOffsets };
 }
+
 
 function saveGardenMap() {
   try { localStorage.setItem('mh_garden_map', JSON.stringify(gardenMap)); } catch(e) {}
@@ -925,9 +946,56 @@ function saveGardenMap() {
 }
 
 function initGardenMap() {
-  gardenMap = { fieldSettings: {}, extras: [], locked: false };
-  mapFieldLetters().forEach(l => mapFieldSettings(l)); // init defaults
+  gardenMap = { fieldSettings: {}, fieldMeters: {}, fieldDragOffsets: {}, extras: [], locked: false };
+  mapFieldLetters().forEach(l => mapFieldSettings(l));
+  initFieldMeters();
   saveGardenMap();
+}
+
+function initFieldMeters() {
+  // Assign default stacked positions in meters to all fields that don't have one
+  if (!gardenMap.fieldMeters) gardenMap.fieldMeters = {};
+  if (!gardenMap.fieldDragOffsets) gardenMap.fieldDragOffsets = {};
+  const letters = mapFieldLetters();
+  let curY = MAP_PAD_M;
+  letters.forEach((letter, i) => {
+    if (gardenMap.fieldMeters[letter]) {
+      // already set, skip but advance curY
+      const sz = getFieldSizeM(letter);
+      curY = Math.max(curY, gardenMap.fieldMeters[letter].y + sz.h + 1.0);
+      return;
+    }
+    const sz = getFieldSizeM(letter);
+    gardenMap.fieldMeters[letter] = { x: MAP_PAD_M, y: curY };
+    gardenMap.fieldDragOffsets[letter] = { x: MAP_PAD_M * MAP_PX_PER_M, y: curY * MAP_PX_PER_M };
+    curY += sz.h + 1.0; // 1m gap between fields
+  });
+}
+
+function getFieldSizeM(letter) {
+  const beds = BED_IDS.filter(id => (id.match(/^([A-Za-z]+)/)?.[1]||'A') === letter);
+  const fs = mapFieldSettings(letter);
+  const isP = fs.orientation === 'portrait';
+  const gangM = fs.gangvei;
+  const bpr = (fs.bedsPerRow > 0) ? fs.bedsPerRow : beds.length;
+  let maxW = 0, totalH = 0, rowStart = 0;
+  while (rowStart < beds.length) {
+    const row = beds.slice(rowStart, rowStart + bpr);
+    let rowW = 0, maxH = 0;
+    row.forEach(id => {
+      const sz = bedSizes[id] || {length:11,width:1.2};
+      rowW += (isP ? sz.width : sz.length) + gangM;
+      const h = isP ? sz.length : sz.width;
+      if (h > maxH) maxH = h;
+    });
+    if (rowW > maxW) maxW = rowW;
+    totalH += maxH + gangM;
+    rowStart += bpr;
+  }
+  // Add fixed frame padding (3px each side + 14px label) converted to meters
+  const padM = (3 * 2) / MAP_PX_PER_M;
+  const labelM = 14 / MAP_PX_PER_M;
+  return { w: Math.max(1, maxW + padM), h: Math.max(1, totalH + padM + labelM) };
 }
 
 // ── Map state ──────────────────────────────────────────────────
@@ -944,6 +1012,10 @@ let _mapMouseActive = false, mapMouseX = 0, mapMouseY = 0, mapMouseOX = 0, mapMo
 function openGardenMap() {
   if (mapOpen) return;
   if (!gardenMap || !gardenMap.fieldSettings) initGardenMap();
+  else {
+    // Ensure all fields have meter positions
+    initFieldMeters();
+  }
   mapOpen = true;
   mapScale = 1; mapOffX = 0; mapOffY = 0;
 
@@ -984,12 +1056,26 @@ function openGardenMap() {
 
   const vp = document.getElementById('map-vp');
   // Use both touch and mouse events for maximum compatibility
-  vp.addEventListener('touchstart',  mapTouchStart,  {passive:false});
-  vp.addEventListener('touchmove',   mapTouchMove,   {passive:false});
-  vp.addEventListener('touchend',    mapTouchEnd,    {passive:false});
-  vp.addEventListener('touchcancel', mapTouchEnd,    {passive:false});
-  vp.addEventListener('mousedown',   mapMouseDown,   {passive:false}); // mapMouseDown is the function
-  vp.addEventListener('wheel',       mapWheel,       {passive:false});
+  vp.addEventListener('touchstart',  e => mapTouchStart(e),  {passive:false});
+  vp.addEventListener('touchmove',   e => mapTouchMove(e),   {passive:false});
+  vp.addEventListener('touchend',    e => mapTouchEnd(e),    {passive:false});
+  vp.addEventListener('touchcancel', e => mapTouchEnd(e),    {passive:false});
+  vp.addEventListener('mousedown',   e => mapMouseDown(e),   {passive:false});
+  vp.addEventListener('wheel',       e => mapWheel(e),       {passive:false});
+}
+
+function mapWheel(e) {
+  e.preventDefault();
+  const vp = document.getElementById('map-vp');
+  if (!vp) return;
+  const rect = vp.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+  const factor = e.deltaY < 0 ? 1.12 : 0.89;
+  mapOffX = cx - (cx - mapOffX) * factor;
+  mapOffY = cy - (cy - mapOffY) * factor;
+  mapScale = Math.max(0.05, Math.min(8, mapScale * factor));
+  mapApplyTransform();
 }
 
 function closeGardenMap() {
@@ -998,8 +1084,14 @@ function closeGardenMap() {
 }
 
 function mapApplyTransform() {
+  // Position the world container via offset only; scale is baked into render
+  const vp = document.getElementById('map-vp');
+  if (vp) vp.style.backgroundSize = `${MAP_PX_PER_M * mapScale}px ${MAP_PX_PER_M * mapScale}px`;
   const w = document.getElementById('map-world');
-  if (w) w.style.transform = `translate(${mapOffX}px,${mapOffY}px) scale(${mapScale})`;
+  if (w) {
+    w.style.transform = `translate(${mapOffX}px,${mapOffY}px)`;
+    renderMapWorld();
+  }
 }
 
 function mapZoom(factor) {
@@ -1014,7 +1106,7 @@ function mapZoom(factor) {
 
 function mapFitAll() {
   const vp = document.getElementById('map-vp');
-  const layout = calcMapLayout();
+  const { layout } = calcMapLayout(MAP_PX_PER_M * mapScale);
   if (!vp || !Object.keys(layout).length) return;
   const xs = Object.values(layout).flatMap(p=>[p.x, p.x+p.w]);
   const ys = Object.values(layout).flatMap(p=>[p.y, p.y+p.h]);
@@ -1029,141 +1121,355 @@ function mapFitAll() {
 
 function renderMapWorld() {
   const world = document.getElementById('map-world');
-  if (!world) return;
-  const layout = calcMapLayout();
+  if (!world || !gardenMap) return;
+
+  const S = MAP_PX_PER_M * mapScale;
+  const { layout } = calcMapLayout(S);
   const letters = mapFieldLetters();
   const isLight = document.body.classList.contains('light');
 
-  // Single accent color — use app's accent variable
-  const ACCENT = isLight ? '#b45309' : '#34d399';
-  const BED_BORDER_EMPTY = isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)';
-  const BED_BG_EMPTY     = isLight ? 'rgba(0,0,0,0.03)'  : 'rgba(255,255,255,0.04)';
-  const BED_BG_FILLED    = isLight ? 'rgba(180,83,9,0.1)' : 'rgba(52,211,153,0.12)';
-  const FIELD_BG         = isLight ? 'rgba(180,83,9,0.06)': 'rgba(52,211,153,0.08)';
-  const FIELD_BORDER     = isLight ? 'rgba(180,83,9,0.2)' : 'rgba(52,211,153,0.2)';
-  const LABEL_COLOR      = isLight ? '#8b6240' : '#6ee7b7';
-  const LEDIG_COLOR      = isLight ? 'rgba(0,0,0,0.2)'   : 'rgba(255,255,255,0.2)';
-  const GANGVEI_BG       = isLight ? 'rgba(0,0,0,0.03)'  : 'rgba(255,255,255,0.03)';
+  // Progressive detail levels based on zoom
+  const SHOW_BEDS   = mapScale >= 0.12;  // beds visible
+  const SHOW_EMOJI  = mapScale >= 0.25;  // emojis visible
+  const SHOW_LABEL  = mapScale >= 0.10;  // field label visible
+  const SHOW_BED_ID = mapScale >= 0.35;  // bed IDs visible
 
-  // World size
+  const ACCENT        = isLight ? '#b45309'             : '#34d399';
+  const FIELD_BG      = isLight ? 'rgba(180,83,9,0.07)' : 'rgba(52,211,153,0.07)';
+  const FIELD_BORDER  = isLight ? 'rgba(180,83,9,0.25)' : 'rgba(52,211,153,0.22)';
+  const LABEL_COLOR   = isLight ? '#8b6240'             : '#6ee7b7';
+  const BED_FILLED_BG = isLight ? 'rgba(180,83,9,0.1)'  : 'rgba(52,211,153,0.1)';
+  const BED_FILLED_BD = isLight ? '#b45309'             : '#34d399';
+  const BED_EMPTY_BG  = isLight ? 'rgba(0,0,0,0.03)'   : 'rgba(255,255,255,0.04)';
+  const BED_EMPTY_BD  = isLight ? 'rgba(0,0,0,0.1)'    : 'rgba(255,255,255,0.12)';
+  const LEDIG_COLOR   = isLight ? 'rgba(0,0,0,0.2)'    : 'rgba(255,255,255,0.2)';
+  const ID_COLOR      = isLight ? 'rgba(0,0,0,0.4)'    : 'rgba(255,255,255,0.4)';
+
+  const FIXED_PAD = 3;  // px — never changes with zoom, purely cosmetic
+  const FIXED_LABEL_H = SHOW_LABEL ? 14 : 0; // px — fixed label height
+  const labelH    = FIXED_LABEL_H;
+  const gangPad   = FIXED_PAD;
+  const borderR   = Math.max(3, Math.round(8 * mapScale));
+  const bedR      = Math.max(2, Math.round(4 * mapScale));
+  const idSize    = Math.max(6, Math.round(8 * mapScale));
+  const labelSize = Math.max(8, Math.round(9 * mapScale));
+
   let maxX = 200, maxY = 200;
-  Object.values(layout).forEach(p => { maxX = Math.max(maxX, p.x+p.w+60); maxY = Math.max(maxY, p.y+p.h+60); });
-  (gardenMap.extras||[]).forEach(e => { maxX = Math.max(maxX, e.x+e.w+40); maxY = Math.max(maxY, e.y+e.h+40); });
-  world.style.width = maxX + 'px';
+  Object.values(layout).forEach(p => { maxX=Math.max(maxX,p.x+p.w+80); maxY=Math.max(maxY,p.y+p.h+80); });
+  world.style.width  = maxX + 'px';
   world.style.height = maxY + 'px';
+  world.style.transform = `translate(${mapOffX}px,${mapOffY}px)`;
 
   let html = '';
 
-  // Extra elements
-  (gardenMap.extras||[]).forEach((el, i) => {
-    html += `<div data-extra="${i}" style="position:absolute;left:${el.x}px;top:${el.y}px;
-      width:${el.w}px;height:${el.h}px;border:2px dashed ${BED_BORDER_EMPTY};
-      background:${BED_BG_EMPTY};border-radius:6px;
-      display:flex;align-items:center;justify-content:center;
-      font-size:11px;color:${LEDIG_COLOR};font-family:Georgia,serif;
-      cursor:pointer;box-sizing:border-box">${el.label}</div>`;
-  });
-
-  // Field backgrounds
+  // Field backgrounds (always visible)
   letters.forEach(letter => {
     const beds = BED_IDS.filter(id => (id.match(/^([A-Za-z]+)/)?.[1]||'A') === letter);
     const ps = beds.map(id => layout[id]).filter(Boolean);
     if (!ps.length) return;
-    const fs = mapFieldSettings(letter);
-    const gangPx = Math.round(fs.gangvei * MAP_PX_PER_M);
-    const pad = Math.max(6, Math.round(gangPx * 0.3));
-    const minX = Math.min(...ps.map(p=>p.x)) - pad;
-    const minY = Math.min(...ps.map(p=>p.y)) - pad - 18;
-    const maxXX = Math.max(...ps.map(p=>p.x+p.w)) + pad;
-    const maxYY = Math.max(...ps.map(p=>p.y+p.h)) + pad;
 
-    // Gangvei strips between beds
-    beds.slice(0,-1).forEach((id, i) => {
-      const p = layout[id], pn = layout[beds[i+1]];
-      if (!p || !pn) return;
-      html += `<div style="position:absolute;left:${p.x+p.w}px;top:${p.y}px;
-        width:${pn.x-p.x-p.w}px;height:${p.h}px;
-        background:${GANGVEI_BG};pointer-events:none"></div>`;
-    });
+    const minX = Math.min(...ps.map(p=>p.x)) - gangPad;
+    const minY = Math.min(...ps.map(p=>p.y)) - labelH - gangPad;
+    const maxXX= Math.max(...ps.map(p=>p.x+p.w)) + gangPad;
+    const maxYY= Math.max(...ps.map(p=>p.y+p.h)) + gangPad;
+    const w = maxXX - minX, h = maxYY - minY;
 
-    html += `<div style="position:absolute;left:${minX}px;top:${minY}px;
-      width:${maxXX-minX}px;height:${maxYY-minY}px;
-      background:${FIELD_BG};border:1px solid ${FIELD_BORDER};
-      border-radius:10px;pointer-events:none">
-      <div style="padding:3px 8px;font-size:9px;color:${LABEL_COLOR};font-weight:700;
-        letter-spacing:0.18em;text-transform:uppercase">FELT ${letter}
-        <span style="font-weight:400;opacity:0.6;font-size:8px">
-          ${fs.orientation==='portrait'?'↕':'↔'} ${fs.gangvei}m
-        </span>
-      </div>
+    html += `<div data-field-drag="${letter}" style="position:absolute;
+      left:${minX}px;top:${minY}px;width:${w}px;height:${h}px;
+      background:${FIELD_BG};border:1.5px solid ${FIELD_BORDER};
+      border-radius:${borderR}px;cursor:grab;box-sizing:border-box;overflow:hidden">
+      ${SHOW_LABEL ? `<div style="padding:2px ${Math.round(6*mapScale)}px;
+        font-size:${labelSize}px;color:${LABEL_COLOR};font-weight:700;
+        letter-spacing:0.1em;text-transform:uppercase;
+        font-family:Georgia,serif;white-space:nowrap;pointer-events:none;
+        line-height:${labelH}px;overflow:visible;width:max-content">FELT ${letter}</div>` : ''}
     </div>`;
   });
 
   // Beds
-  BED_IDS.forEach(id => {
-    const p = layout[id];
-    if (!p) return;
-    const bedCrops = getCropsInBed(id);
-    const isEmpty = bedCrops.length === 0;
-    const bg = isEmpty ? BED_BG_EMPTY : BED_BG_FILLED;
-    const border = isEmpty ? BED_BORDER_EMPTY : ACCENT;
+  if (SHOW_BEDS) {
+    BED_IDS.forEach(id => {
+      const p = layout[id];
+      if (!p) return;
+      const bedCrops = getCropsInBed(id);
+      const isEmpty = bedCrops.length === 0;
+      const isSelected = mapSelectedBedId === id;
+      const bg = isEmpty ? BED_EMPTY_BG : BED_FILLED_BG;
+      const bd = isEmpty ? BED_EMPTY_BD : BED_FILLED_BD;
+      const bw = isSelected ? 2.5 : 1.5;
 
-    // 1 emoji per meter of bed length
-    let inner = '';
-    if (isEmpty) {
-      inner = `<span style="font-size:8px;color:${LEDIG_COLOR};font-family:Georgia,serif">ledig</span>`;
-    } else {
-      const sz = bedSizes[id] || {length:11, width:1.2};
-      const fs = mapFieldSettings(id.match(/^([A-Za-z]+)/)?.[1]||'A');
-      const isPortrait = fs.orientation === 'portrait';
-      const lengthPx = isPortrait ? p.h : p.w;
-      const emojiSize = Math.max(8, Math.min(20, Math.floor(p.h * 0.55)));
-      // How many emojis fit along the length: 1 per meter
-      const perMeter = 1;
-      const meters = isPortrait ? sz.length : sz.length;
-      const totalSlots = Math.max(1, Math.round(meters * perMeter));
-      // Build sequence: repeat crops to fill slots
-      const seq = [];
-      for (let i = 0; i < totalSlots; i++) seq.push(bedCrops[i % bedCrops.length].emoji);
-      // But cap at what fits visually (emojiSize+2 px each)
-      const maxFit = Math.max(1, Math.floor(lengthPx / (emojiSize + 2)));
-      const shown = seq.slice(0, maxFit);
-      const leftover = totalSlots - shown.length;
-      const isRow = !isPortrait;
+      let inner = '';
+      if (SHOW_EMOJI && !isEmpty) {
+        const sz = bedSizes[id] || {length:11, width:1.2};
+        const fs2 = mapFieldSettings(id.match(/^([A-Za-z]+)/)?.[1]||'A');
+        const isPortrait = fs2.orientation === 'portrait';
+        const total = Math.max(1, Math.round(sz.length));
+        // Emoji size: proportional to bed dimension × zoom
+        const emojiSize = Math.max(8, Math.min(
+          Math.round(Math.min(p.w, p.h) * 0.52),
+          Math.round(24 * mapScale)
+        ));
+        const flexDir = isPortrait ? 'column' : 'row';
+        const seq = Array.from({length:total}, (_,ii) => bedCrops[ii % bedCrops.length].emoji);
+        const slotPx = emojiSize + Math.round(3 * mapScale);
+        const availPx = (isPortrait ? p.h : p.w) - Math.round(8 * mapScale);
+        const maxShow = Math.max(1, Math.floor(availPx / slotPx));
+        const shown = seq.slice(0, maxShow);
+        const leftover = total - shown.length;
+        inner = `<div style="display:flex;flex-direction:${flexDir};
+          align-items:center;justify-content:space-evenly;
+          width:100%;height:100%;
+          padding:${Math.round(3*mapScale)}px;
+          overflow:hidden;box-sizing:border-box;pointer-events:none">
+          ${shown.map(e=>`<span style="font-size:${emojiSize}px;line-height:1;flex-shrink:0">${e}</span>`).join('')}
+          ${leftover>0?`<span style="font-size:${Math.max(6,Math.round(7*mapScale))}px;color:${LEDIG_COLOR};flex-shrink:0">+${leftover}</span>`:''}
+        </div>`;
+      }
 
-      inner = `<div style="display:flex;flex-direction:${isRow?'row':'column'};
-        align-items:center;justify-content:center;
-        gap:1px;padding:2px;width:100%;height:100%;overflow:hidden;pointer-events:none">
-        ${shown.map(e => `<span style="font-size:${emojiSize}px;line-height:1">${e}</span>`).join('')}
-        ${leftover > 0 ? `<span style="font-size:7px;color:${LEDIG_COLOR};flex-shrink:0">+${leftover}</span>` : ''}
+      html += `<div data-bed="${id}" style="position:absolute;
+        left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px;
+        background:${bg};border:${bw}px solid ${isSelected?ACCENT:bd};
+        border-radius:${bedR}px;box-sizing:border-box;
+        cursor:pointer;overflow:hidden;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        user-select:none">
+        ${SHOW_BED_ID ? `<div style="position:absolute;top:${Math.round(2*mapScale)}px;left:${Math.round(3*mapScale)}px;
+          font-size:${idSize}px;color:${ID_COLOR};font-weight:700;line-height:1;
+          font-family:Georgia,serif;pointer-events:none;white-space:nowrap">${id}</div>` : ''}
+        ${inner}
       </div>`;
-    }
-
-    html += `<div data-bed="${id}" style="position:absolute;left:${p.x}px;top:${p.y}px;
-      width:${p.w}px;height:${p.h}px;background:${bg};
-      border:1.5px solid ${border};border-radius:4px;
-      box-sizing:border-box;cursor:pointer;overflow:hidden;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      user-select:none">
-      <div style="position:absolute;top:2px;left:3px;font-size:7px;color:${ACCENT};
-        font-weight:700;line-height:1;font-family:Georgia,serif;pointer-events:none">${id}</div>
-      ${inner}
-    </div>`;
-  });
+    });
+  }
 
   world.innerHTML = html;
-  mapApplyTransform();
 
-  // Bed click events
+  world.querySelectorAll('[data-field-drag]').forEach(el => {
+    attachFieldDragInMap(el, el.dataset.fieldDrag);
+  });
   world.querySelectorAll('[data-bed]').forEach(el => {
-    el.addEventListener('click', e => {
-      e.stopPropagation();
-      world.querySelectorAll('[data-bed]').forEach(b => b.style.outline = '');
-      el.style.outline = `2px solid ${isLight ? '#b45309' : 'white'}`;
-      showMapBedInfo(el.dataset.bed);
-    });
+    el.addEventListener('click', e => { e.stopPropagation(); showBedPopup(el.dataset.bed); });
   });
 }
+
+
+
+let mapSelectedBedId = null;
+
+function showBedPopup(bedId) {
+  document.getElementById('map-bed-popup')?.remove();
+  mapSelectedBedId = bedId;
+
+  const bedCrops = getCropsInBed(bedId);
+  const sz = bedSizes[bedId] || {length:'?', width:'?'};
+  const p = calcMapLayout(MAP_PX_PER_M * mapScale).layout[bedId];
+  const vp = document.getElementById('map-vp');
+  if (!vp) return;
+  const vpRect = vp.getBoundingClientRect();
+
+  // World position → screen position
+  const screenX = p ? p.x * 1 + mapOffX : vpRect.width/2;
+  const screenY = p ? p.y * 1 + mapOffY : vpRect.height/2;
+
+  const popup = document.createElement('div');
+  popup.id = 'map-bed-popup';
+  popup.style.cssText = `position:fixed;z-index:6000;
+    left:${Math.min(vpRect.right - 280, Math.max(vpRect.left + 8, vpRect.left + screenX))}px;
+    top:${Math.min(vpRect.bottom - 200, Math.max(vpRect.top + 8, vpRect.top + screenY + 20))}px;
+    width:270px;background:var(--bg-modal);border:1px solid var(--border-accent);
+    border-radius:14px;padding:14px;box-shadow:0 8px 32px rgba(0,0,0,0.4);
+    font-family:Georgia,serif`;
+
+  const cropList = bedCrops.length
+    ? bedCrops.map(c => {
+        const sowDate  = c.sowLog     ? `Sådd: ${c.sowLog}`         : (c.sownDate    ? `Sådato: ${c.sownDate}`    : '');
+        const plantDate= c.plantLog   ? `Plantet: ${c.plantLog}`    : (c.plantedDate ? `Plantedato: ${c.plantedDate}` : '');
+        const status   = STATUS[c.status]?.label || c.status;
+        return `<div style="padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:20px">${c.emoji}</span>
+            <div>
+              <div style="font-size:13px;color:var(--text-head);font-weight:400">${c.name}</div>
+              <div style="font-size:10px;color:var(--text-muted)">${status}</div>
+            </div>
+          </div>
+          ${sowDate   ? `<div style="font-size:10px;color:var(--text-muted)">🌱 ${sowDate}</div>`   : ''}
+          ${plantDate ? `<div style="font-size:10px;color:var(--text-muted)">🪴 ${plantDate}</div>` : ''}
+          ${c.notes   ? `<div style="font-size:10px;color:var(--text-muted);font-style:italic;margin-top:2px">📝 ${c.notes}</div>` : ''}
+        </div>`;
+      }).join('')
+    : `<div style="font-size:12px;color:var(--text-muted);padding:8px 0">Ingen vekster i denne sengen</div>`;
+
+  popup.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <strong style="font-size:14px;color:var(--accent-soft)">Seng ${bedId}</strong>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:11px;color:var(--text-muted)">${sz.length}m × ${sz.width}m</span>
+        <button onclick="document.getElementById('map-bed-popup').remove();mapSelectedBedId=null;renderMapWorld()"
+          style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;line-height:1">×</button>
+      </div>
+    </div>
+    ${cropList}
+    <button onclick="document.getElementById('map-bed-popup').remove();closeGardenMap();showTab('senger');setTimeout(()=>selectBed('${bedId}'),150)"
+      style="width:100%;margin-top:10px;padding:8px;border-radius:8px;
+      border:1px solid var(--accent);background:var(--accent-bg);
+      color:var(--accent-soft);cursor:pointer;font-size:12px;font-family:inherit">
+      Åpne i Senger →
+    </button>`;
+
+  document.getElementById('map-overlay').appendChild(popup);
+  renderMapWorld(); // re-render to show selection highlight
+}
+
+// Field drag — simple, correct, 1:1
+function attachFieldDragInMap(el, letter) {
+  let startClientX, startClientY;
+  let startWorldX, startWorldY; // in base world pixels (unscaled)
+  let active = false;
+
+  function onStart(clientX, clientY) {
+    active = true;
+    startClientX = clientX;
+    startClientY = clientY;
+    // Read el's current base-world position from fieldMeters or fieldDragOffsets
+    if (!gardenMap.fieldMeters) gardenMap.fieldMeters = {};
+    if (!gardenMap.fieldDragOffsets) gardenMap.fieldDragOffsets = {};
+    if (gardenMap.fieldMeters[letter]) {
+      startWorldX = gardenMap.fieldMeters[letter].x * MAP_PX_PER_M;
+      startWorldY = gardenMap.fieldMeters[letter].y * MAP_PX_PER_M;
+    } else if (gardenMap.fieldDragOffsets[letter]) {
+      startWorldX = gardenMap.fieldDragOffsets[letter].x;
+      startWorldY = gardenMap.fieldDragOffsets[letter].y;
+    } else {
+      // First drag: compute from default layout (no overrides)
+      const savedM = gardenMap.fieldMeters;
+      const savedD = gardenMap.fieldDragOffsets;
+      gardenMap.fieldMeters = {};
+      gardenMap.fieldDragOffsets = {};
+      const { layout } = calcMapLayout(MAP_PX_PER_M);
+      gardenMap.fieldMeters = savedM;
+      gardenMap.fieldDragOffsets = savedD;
+      const beds = BED_IDS.filter(id => (id.match(/^([A-Za-z]+)/)?.[1]||'A') === letter);
+      const ps = beds.map(id => layout[id]).filter(Boolean);
+      startWorldX = ps.length ? Math.min(...ps.map(p=>p.x)) : 0;
+      startWorldY = ps.length ? Math.min(...ps.map(p=>p.y)) : 0;
+    }
+    el.style.cursor = 'grabbing';
+  }
+
+  function onMove(clientX, clientY) {
+    if (!active) return;
+    const dxBase = (clientX - startClientX) / mapScale;
+    const dyBase = (clientY - startClientY) / mapScale;
+    const rawX = Math.max(0, startWorldX + dxBase);
+    const rawY = Math.max(0, startWorldY + dyBase);
+    // Resolve overlap during drag so field can never land on another
+    const rawMX = rawX / MAP_PX_PER_M;
+    const rawMY = rawY / MAP_PX_PER_M;
+    const resolved = resolveOverlapMeters(rawMX, rawMY, letter);
+    gardenMap.fieldMeters[letter] = resolved;
+    gardenMap.fieldDragOffsets[letter] = { x: resolved.x * MAP_PX_PER_M, y: resolved.y * MAP_PX_PER_M };
+    renderMapWorld();
+  }
+
+  function onEnd() {
+    if (!active) return;
+    active = false;
+    el.style.cursor = 'grab';
+    // Resolve overlaps in meters
+    if (gardenMap.fieldMeters?.[letter]) {
+      const cur = gardenMap.fieldMeters[letter];
+      const resolved = resolveOverlapMeters(cur.x, cur.y, letter);
+      gardenMap.fieldMeters[letter] = resolved;
+      gardenMap.fieldDragOffsets[letter] = { x: resolved.x * MAP_PX_PER_M, y: resolved.y * MAP_PX_PER_M };
+    }
+    saveGardenMap();
+    renderMapWorld();
+  }
+
+  el.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    e.preventDefault(); e.stopPropagation();
+    onStart(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:false});
+
+  el.addEventListener('touchmove', e => {
+    if (e.touches.length !== 1) return;
+    e.preventDefault(); e.stopPropagation();
+    onMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:false});
+
+  el.addEventListener('touchend', e => {
+    e.preventDefault(); e.stopPropagation(); onEnd();
+  }, {passive:false});
+
+  el.addEventListener('mousedown', e => {
+    e.preventDefault(); e.stopPropagation();
+    onStart(e.clientX, e.clientY);
+    const mm = ev => { ev.preventDefault(); onMove(ev.clientX, ev.clientY); };
+    const mu = () => { onEnd(); window.removeEventListener('mousemove',mm); window.removeEventListener('mouseup',mu); };
+    window.addEventListener('mousemove', mm);
+    window.addEventListener('mouseup', mu);
+  });
+}
+
+// Resolve overlap in meters, returns adjusted position
+function resolveOverlapMeters(mx, my, movingLetter) {
+  const GAP = 1.0; // 1 meter min gap between fields
+  const letters = mapFieldLetters();
+
+  function getPosM(l) {
+    if (gardenMap.fieldMeters?.[l]) return { ...gardenMap.fieldMeters[l] };
+    if (gardenMap.fieldDragOffsets?.[l]) return {
+      x: gardenMap.fieldDragOffsets[l].x / MAP_PX_PER_M,
+      y: gardenMap.fieldDragOffsets[l].y / MAP_PX_PER_M
+    };
+    // Use default grid position
+    if (!gardenMap.fieldGrid) gardenMap.fieldGrid = {};
+    const li = mapFieldLetters();
+    li.forEach((lt, i) => { if (!gardenMap.fieldGrid[lt]) gardenMap.fieldGrid[lt] = {col:0,row:i}; });
+    const g = gardenMap.fieldGrid[l] || {col:0, row:0};
+    // Compute stacked default position
+    let defX = MAP_PAD_M, defY = MAP_PAD_M;
+    li.slice(0, li.indexOf(l)).forEach(prev => {
+      const sz = getFieldSizeM(prev);
+      defY += sz.h + 1.0; // 1m gap
+    });
+    return { x: defX, y: defY };
+  }
+
+  const movingSz = getFieldSizeM(movingLetter);
+
+  for (let iter = 0; iter < 12; iter++) {
+    let moved = false;
+    for (const other of letters) {
+      if (other === movingLetter) continue;
+      const op = getPosM(other);
+      const os = getFieldSizeM(other);
+      const overlapX = mx < op.x+os.w+GAP && mx+movingSz.w > op.x-GAP;
+      const overlapY = my < op.y+os.h+GAP && my+movingSz.h > op.y-GAP;
+      if (overlapX && overlapY) {
+        const dR = op.x+os.w+GAP - mx;
+        const dL = mx+movingSz.w+GAP - op.x;
+        const dD = op.y+os.h+GAP - my;
+        const dU = my+movingSz.h+GAP - op.y;
+        const min = Math.min(dR,dL,dD,dU);
+        if      (min===dR) mx += dR;
+        else if (min===dL) mx -= dL;
+        else if (min===dD) my += dD;
+        else               my -= dU;
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  return { x: Math.max(0,mx), y: Math.max(0,my) };
+}
+
+
+
+
+
+
 
 // ── Touch events (pan + pinch) ──────────────────────────────────
 function mapTouchStart(e) {
@@ -1282,6 +1588,14 @@ function openMapSettings() {
           style="width:55px;padding:5px 7px;border-radius:6px;border:1px solid var(--border);
           background:var(--bg-input);color:var(--text-head);font-size:12px;font-family:inherit">
         <span style="font-size:11px;color:var(--text-muted)">m</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text-muted)">Senger per rad:</span>
+        <input type="number" min="0" max="50" step="1" value="${fs.bedsPerRow||0}"
+          onchange="updateMapFieldSetting('${letter}','bedsPerRow',+this.value)"
+          style="width:52px;padding:5px 7px;border-radius:6px;border:1px solid var(--border);
+          background:var(--bg-input);color:var(--text-head);font-size:12px;font-family:inherit">
+        <span style="font-size:10px;color:var(--text-dim)">(0 = alle i én rad)</span>
       </div>
     </div>`;
   }).join('');
@@ -3600,7 +3914,7 @@ function gistSetup() {
 
       <div style="display:flex;gap:10px">
         <button id="sync-modal-cancel" style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:14px">Avbryt</button>
-        <button id="sync-modal-save" style="flex:2;padding:11px;border-radius:8px;border:none;background:#16a34a;color:white;cursor:pointer;font-size:14px;font-weight:500">Koble til</button>
+        <button id="sync-modal-save" style="flex:2;padding:11px;border-radius:8px;border:none;background:#16a34a;color:white;cursor:pointer;font-size:14px;font-weight:500">Lagre</button>
       </div>
     </div>`;
 
