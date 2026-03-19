@@ -1164,9 +1164,9 @@ function openGardenMap() {
         style="padding:5px 11px;border-radius:7px;border:1px solid #4a3830;background:rgba(0,0,0,0.3);color:#e87070;cursor:pointer;font-size:12px;font-family:inherit">Slett alt</button>
 
       <button onclick="toggleDrawToolbar()"
-        style="padding:5px 9px;border-radius:7px;border:1px solid #4a3830;
-        background:transparent;color:#6b5a50;cursor:pointer;font-size:11px;
-        font-family:inherit;margin-left:auto">Skjul</button>
+        style="padding:5px 9px;border-radius:7px;border:1px solid #6b5a50;
+        background:transparent;color:#e8ddd0;cursor:pointer;font-size:11px;
+        font-family:inherit;margin-left:auto">▲ Skjul</button>
     </div>
 
     <!-- Color panel -->
@@ -2089,8 +2089,8 @@ function initDrawCanvas() {
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   }
 
-  overlay.addEventListener('mousedown', e => { e.preventDefault(); const p=getOverlayPos(e); startStroke(p.x,p.y); });
-  overlay.addEventListener('mousemove', e => { if (e.buttons&1) { e.preventDefault(); const p=getOverlayPos(e); continueStroke(p.x,p.y); }});
+  overlay.addEventListener('mousedown', e => { if (e.ctrlKey || e.metaKey) return; e.preventDefault(); const p=getOverlayPos(e); startStroke(p.x,p.y); });
+  overlay.addEventListener('mousemove', e => { if ((e.buttons&1) && !e.ctrlKey && !e.metaKey) { e.preventDefault(); const p=getOverlayPos(e); continueStroke(p.x,p.y); }});
   overlay.addEventListener('mouseup', endStroke);
   overlay.addEventListener('mouseleave', endStroke);
   overlay.addEventListener('wheel', e => { e.stopPropagation(); mapWheel(e); }, {passive:false});
@@ -2147,7 +2147,7 @@ function redrawCanvas() {
     if (stroke.type === 'fill') {
       // Fills are stored as pixel operations — re-execute them on redraw
       const sp = worldToScreen(stroke.point.x, stroke.point.y);
-      doFillOnCtx(ctx, W, H, sp.x, sp.y, stroke.color);
+      doFillOnCtx(ctx, W, H, sp.x, sp.y, stroke.color, stroke.opacity);
       return;
     }
     if (!stroke.points || stroke.points.length === 0) return;
@@ -2249,16 +2249,16 @@ function doFill(sx, sy) {
   const ctx = canvas.getContext('2d');
   ctx.save();
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  doFillOnCtx(ctx, W, H, sx, sy, drawColor);
+  doFillOnCtx(ctx, W, H, sx, sy, drawColor, drawOpacity);
   ctx.restore();
 
   const mp = { x: (sx - mapOffX) / (mapScale * MAP_PX_PER_M), y: (sy - mapOffY) / (mapScale * MAP_PX_PER_M) };
   if (!gardenMap.drawStrokes) gardenMap.drawStrokes = [];
-  gardenMap.drawStrokes.push({ type: 'fill', color: drawColor, point: mp });
+  gardenMap.drawStrokes.push({ type: 'fill', color: drawColor, opacity: drawOpacity, point: mp });
   saveGardenMap();
 }
 
-function doFillOnCtx(ctx, W, H, sx, sy, fillColorHex) {
+function doFillOnCtx(ctx, W, H, sx, sy, fillColorHex, opacity) {
   // Get pixel data at CSS scale
   const dpr = window.devicePixelRatio || 1;
   const canvas = document.getElementById('draw-canvas');
@@ -2269,17 +2269,19 @@ function doFillOnCtx(ctx, W, H, sx, sy, fillColorHex) {
   const px0 = Math.round(sx * dpr), py0 = Math.round(sy * dpr);
   if (px0 < 0 || px0 >= pw || py0 < 0 || py0 >= ph) return;
 
+  // Parse color and apply opacity
   const tmp = document.createElement('canvas'); tmp.width = 1; tmp.height = 1;
   const tc = tmp.getContext('2d'); tc.fillStyle = fillColorHex; tc.fillRect(0,0,1,1);
   const fc = tc.getImageData(0,0,1,1).data;
-  const [fr,fg,fb,fa] = [fc[0],fc[1],fc[2],255];
+  const fillAlpha = opacity !== undefined ? Math.round(opacity * 255) : 255;
+  const [fr,fg,fb,fa] = [fc[0],fc[1],fc[2], fillAlpha];
 
   const i0 = (py0 * pw + px0) * 4;
   const [sr,sg,sb,sa] = [data[i0],data[i0+1],data[i0+2],data[i0+3]];
   if (sr===fr && sg===fg && sb===fb && sa===fa) return;
 
   const match = i => Math.abs(data[i]-sr)<40 && Math.abs(data[i+1]-sg)<40 && Math.abs(data[i+2]-sb)<40 && Math.abs(data[i+3]-sa)<40;
-  const set   = i => { data[i]=fr; data[i+1]=fg; data[i+2]=fb; data[i+3]=255; };
+  const set   = i => { data[i]=fr; data[i+1]=fg; data[i+2]=fb; data[i+3]=fa; };
 
   const stack = [py0 * pw + px0];
   const vis = new Uint8Array(pw * ph);
