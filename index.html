@@ -294,15 +294,15 @@
           <circle cx="236" cy="238" r="6" fill="#c9a84c" opacity="0.5"/>
         </svg>
         <div>
-          <div class="header-eyebrow" style="font-size:12px;color:#c9a84c">Markedshage</div>
+          <div class="header-eyebrow" style="font-size:9px;color:var(--text-muted);letter-spacing:0.3em">MARKEDSHAGE</div>
           <h1 style="font-size:16px;font-weight:600;color:var(--text-main);letter-spacing:0.02em;margin:0">Assistenten</h1>
         </div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;position:relative">
-        <button id="undo-btn" onclick="undo()" title="Angre (Ctrl+Z)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↩</button>
-        <button id="redo-btn" onclick="redo()" title="Gjør om (Ctrl+Y)" disabled style="padding:7px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">↪</button>
-        <button onclick="syncConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="JSONBin synkronisering" style="padding:7px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">☁</button>
-        <button onclick="toggleGearMenu()" id="gear-btn" title="Innstillinger" style="padding:7px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">⚙</button>
+        <button onclick="syncConnected ? gistShowMenu() : gistSetup()" id="gist-btn" title="JSONBin synkronisering" style="padding:4px 8px;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1;display:inline-flex;align-items:center;justify-content:center;padding-top:6px">☁</button>
+        <button id="undo-btn" onclick="undo()" title="Angre (Ctrl+Z)" disabled style="padding:4px 8px;padding-top:6px;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1;display:inline-flex;align-items:center;justify-content:center">↩</button>
+        <button id="redo-btn" onclick="redo()" title="Gjør om (Ctrl+Y)" disabled style="padding:4px 8px;padding-top:6px;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1;display:inline-flex;align-items:center;justify-content:center">↪</button>
+        <button onclick="toggleGearMenu()" id="gear-btn" title="Innstillinger" style="padding:4px 8px;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">⚙</button>
         <div id="gear-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--bg-modal);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:190px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
           <button onclick="toggleTheme();closeGearMenu()" id="theme-menu-btn" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:13px;color:var(--text-head);font-family:inherit;text-align:left" onmouseover="this.style.background='rgba(128,128,128,0.1)'" onmouseout="this.style.background='transparent'">☀ Lyst tema</button>
           <div style="height:1px;background:rgba(255,255,255,0.08);margin:4px 0"></div>
@@ -568,8 +568,18 @@ function updateUndoRedoBtns() {
 
 // Keyboard shortcuts
 document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'y')                { e.preventDefault(); redo(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    if (drawMode && gardenMap.drawStrokes?.length) {
+      gardenMap.drawStrokes.pop(); saveGardenMap(); redrawCanvas();
+    } else { undo(); }
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+    e.preventDefault();
+    if (!drawMode) redo();
+    return;
+  }
   const tag = document.activeElement && document.activeElement.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
   if (currentTab === 'kalender') {
@@ -1019,6 +1029,15 @@ function getFieldSizeM(letter) {
 
 // ── Map state ──────────────────────────────────────────────────
 let mapOpen = false;
+let drawMode = false;
+let drawColor = '#1c1410';
+let lastDrawColor = '#1c1410'; // remembered before eraser
+let drawSize = 4;
+let drawBrush = 'round';
+let fillMode = false;
+let drawPoints = [];
+let drawOpacity = 1.0;
+
 let mapScale = 1;
 let mapOffX = 0, mapOffY = 0;
 let mapTouch1 = null;   // first touch {id,x,y}
@@ -1040,28 +1059,157 @@ function openGardenMap() {
 
   const overlay = document.createElement('div');
   overlay.id = 'map-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;display:flex;flex-direction:column;background:var(--bg-main);';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;display:flex;flex-direction:column;background:#f5f0e8;';
 
   overlay.innerHTML = `
-    <div style="flex-shrink:0;display:flex;align-items:center;gap:6px;padding:8px 12px;
-      background:var(--bg-header);border-bottom:1px solid var(--border-accent);flex-wrap:wrap">
-      <button onclick="closeGardenMap()" style="padding:6px 12px;border-radius:8px;
+    <div style="flex-shrink:0;display:flex;align-items:center;padding:6px 10px;gap:8px;
+      background:var(--bg-header);border-bottom:1px solid var(--border-accent)">
+      <!-- Logo left -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width:32px;height:32px;border-radius:8px;flex-shrink:0">
+          <rect width="512" height="512" rx="110" fill="#1a1005"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#c9a84c" opacity="0.9"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#c9a84c" opacity="0.9" transform="rotate(45 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#d4954a" opacity="0.85" transform="rotate(90 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#c9a84c" opacity="0.9" transform="rotate(135 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#d4954a" opacity="0.85" transform="rotate(180 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#c9a84c" opacity="0.9" transform="rotate(225 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#d4954a" opacity="0.85" transform="rotate(270 256 256)"/>
+          <ellipse cx="256" cy="148" rx="28" ry="58" fill="#c9a84c" opacity="0.9" transform="rotate(315 256 256)"/>
+          <circle cx="256" cy="256" r="72" fill="#6b3d11"/>
+          <circle cx="256" cy="256" r="55" fill="#4a2a08"/>
+          <circle cx="256" cy="225" r="6" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="276" cy="238" r="6" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="276" cy="262" r="6" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="256" cy="275" r="6" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="236" cy="262" r="6" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="236" cy="238" r="6" fill="#c9a84c" opacity="0.5"/>
+        </svg>
+      <!-- Centered buttons -->
+      <div style="flex:1;display:flex;justify-content:center;gap:6px;align-items:center">
+        <button onclick="openMapSettings()" style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);cursor:pointer;font-size:12px;font-family:inherit">Innstillinger</button>
+        <button id="draw-mode-btn" onclick="toggleDrawMode()" style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);cursor:pointer;font-size:12px;font-family:inherit">Tegning</button>
+      </div>
+      <!-- Close right -->
+      <button onclick="closeGardenMap()" style="padding:5px 10px;border-radius:8px;
         border:1px solid var(--border);background:var(--bg-card);
-        color:var(--text-muted);cursor:pointer;font-size:13px;font-family:inherit">✕ Lukk</button>
-      <span style="color:var(--accent-soft);font-size:13px;flex:1">Hagekart</span>
-      <div style="display:flex;gap:4px">
-        <button onclick="mapZoom(1.25)" style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);cursor:pointer;font-size:15px">+</button>
-        <button onclick="mapZoom(0.8)"  style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);cursor:pointer;font-size:15px">−</button>
-        <button onclick="mapFitAll()"   style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit" title="Vis hele kartet">⊞</button>
-        <button onclick="openMapSettings()" style="padding:5px 10px;border-radius:7px;
-          border:1px solid var(--border);background:var(--bg-card);
-          color:var(--text-head);cursor:pointer;font-size:12px;font-family:inherit">⚙ Innstillinger</button>
+        color:var(--text-muted);cursor:pointer;font-size:13px;font-family:inherit;flex-shrink:0">✕</button>
+    </div>
+    <!-- Drawing toolbar (hidden by default) -->
+    <div style="display:none" id="draw-toolbar-wrapper">
+    <div id="draw-toolbar" style="display:none;flex-shrink:0;
+      background:#2c2420;border-bottom:2px solid #1a1410;
+      padding:8px 12px;gap:8px;align-items:center;flex-wrap:wrap;font-family:Georgia,serif">
+
+      <!-- Size slider -->
+      <div style="display:flex;align-items:center;gap:6px">
+        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#c4b89a"/></svg>
+        <input type="range" id="draw-size" min="1" max="80" value="4"
+          style="width:80px;accent-color:#c9a84c;cursor:pointer;height:4px">
+        <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#c4b89a"/></svg>
+      </div>
+
+      <div style="width:1px;height:22px;background:rgba(255,255,255,0.1)"></div>
+
+      <!-- Brush shape buttons -->
+      <div style="display:flex;gap:4px;align-items:center">
+        <button onclick="setDrawBrush('round')" data-brush="round"
+          title="Rund" style="width:30px;height:30px;border-radius:6px;border:1px solid #4a3830;
+          background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
+          <svg width="20" height="20"><line x1="3" y1="17" x2="17" y2="3" stroke="#c4b89a" stroke-width="4" stroke-linecap="round"/></svg>
+        </button>
+        <button onclick="setDrawBrush('square')" data-brush="square"
+          title="Firkantet" style="width:30px;height:30px;border-radius:6px;border:1px solid #4a3830;
+          background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
+          <svg width="20" height="20"><line x1="3" y1="17" x2="17" y2="3" stroke="#c4b89a" stroke-width="4" stroke-linecap="square"/></svg>
+        </button>
+        <button onclick="setDrawBrush('calligraphy')" data-brush="calligraphy"
+          title="Kalligrafi" style="width:30px;height:30px;border-radius:6px;border:1px solid #4a3830;
+          background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
+          <svg width="20" height="20">
+            <path d="M 3 17 Q 8 12 10 8 Q 12 4 17 3" stroke="#c4b89a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M 3 17 Q 8 13 10 8 Q 12 4 17 3" stroke="#c4b89a" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+        </button>
+      </div>
+
+      <div style="width:1px;height:22px;background:rgba(255,255,255,0.1)"></div>
+
+      <!-- Color swatch + panel toggle -->
+      <button id="draw-btn-color" onclick="toggleDrawPanel('color')"
+        style="width:30px;height:30px;border-radius:6px;border:2px solid #4a3830;
+        background:transparent;cursor:pointer;padding:2px;position:relative">
+        <div id="draw-color-dot" style="width:100%;height:100%;border-radius:4px;background:#1c1410"></div>
+      </button>
+
+      <div style="width:1px;height:22px;background:rgba(255,255,255,0.1)"></div>
+
+      <!-- Opacity slider -->
+      <div style="display:flex;align-items:center;gap:5px">
+        <svg width="16" height="16" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="7" fill="none" stroke="#c4b89a" stroke-width="1.5"/>
+          <path d="M8 1 A7 7 0 0 1 15 8 L8 8 Z" fill="#c4b89a"/>
+        </svg>
+        <input type="range" id="draw-opacity" min="5" max="100" value="100"
+          style="width:60px;accent-color:#c9a84c;cursor:pointer;height:4px">
+      </div>
+
+      <div style="width:1px;height:22px;background:rgba(255,255,255,0.1)"></div>
+
+      <!-- Fill, Eraser, Clear -->
+      <button id="fill-tool-btn" onclick="toggleFillTool()"
+        style="padding:5px 11px;border-radius:7px;border:1px solid #4a3830;background:rgba(0,0,0,0.3);color:#e8ddd0;cursor:pointer;font-size:12px;font-family:inherit">Fyll</button>
+      <button id="draw-eraser-btn" onclick="toggleEraser()"
+        style="padding:5px 11px;border-radius:7px;border:1px solid #4a3830;background:rgba(0,0,0,0.3);color:#e8ddd0;cursor:pointer;font-size:12px;font-family:inherit">Viskelær</button>
+      <button onclick="clearDrawing()"
+        style="padding:5px 11px;border-radius:7px;border:1px solid #4a3830;background:rgba(0,0,0,0.3);color:#e87070;cursor:pointer;font-size:12px;font-family:inherit">Slett alt</button>
+
+      <button onclick="toggleDrawToolbar()"
+        style="padding:5px 9px;border-radius:7px;border:1px solid #4a3830;
+        background:transparent;color:#6b5a50;cursor:pointer;font-size:11px;
+        font-family:inherit;margin-left:auto">Skjul</button>
+    </div>
+
+    <!-- Color panel -->
+    <div id="draw-panel-color" style="display:none;position:fixed;z-index:6100;
+      background:#2c2420;border:1px solid #4a3830;border-radius:12px;
+      padding:12px;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;max-width:220px">
+        ${['#000000','#1c1410','#3d2b1f','#5c3d2a','#8b5e3c','#c4960c',
+           '#d97706','#ea580c','#dc2626','#be185d','#9333ea','#7c3aed',
+           '#4f46e5','#2563eb','#0284c7','#0891b2','#0d9488','#16a34a',
+           '#15803d','#4d7c0f','#78350f','#44403c','#6b7280','#9ca3af',
+           '#ffffff','#fef9c3','#fde68a','#bbf7d0','#bfdbfe','#e9d5ff',
+           '#fecaca','#fed7aa'].map(c =>
+          `<div onclick="setDrawColor('${c}')" data-color="${c}"
+            style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;
+            border:2px solid transparent;flex-shrink:0;
+            box-shadow:0 0 0 1px rgba(255,255,255,0.15);transition:transform 0.1s"
+            onmouseover="this.style.transform='scale(1.2)'"
+            onmouseout="this.style.transform='scale(1)'"></div>`
+        ).join('')}
       </div>
     </div>
+
+    <!-- Show toolbar tab -->
+    <div id="draw-toolbar-tab" style="display:none;flex-shrink:0;
+      background:#2c2420;border-bottom:1px solid #1a1410;
+      align-items:center;justify-content:center;padding:3px 0">
+      <button onclick="toggleDrawToolbar()"
+        style="padding:2px 24px;border:none;background:transparent;
+        color:#6b5a50;cursor:pointer;font-size:11px;font-family:inherit">
+        Vis verktøy
+      </button>
+    </div>
+    </div>
     <div id="map-vp" style="flex:1;overflow:hidden;position:relative;touch-action:none;
-      background-image:radial-gradient(circle at 1px 1px, rgba(128,128,128,0.12) 1px, transparent 0);
+      background-color:#faf7f2;
+      background-image:radial-gradient(circle at 1px 1px, rgba(0,0,0,0.08) 1px, transparent 0);
       background-size:${MAP_PX_PER_M}px ${MAP_PX_PER_M}px">
-      <div id="map-world" style="position:absolute;transform-origin:0 0;will-change:transform;cursor:grab"></div>
+      <!-- Drawing canvas always below world -->
+      <canvas id="draw-canvas" style="position:absolute;top:0;left:0;z-index:0;pointer-events:none"></canvas>
+      <div id="map-world" style="position:absolute;transform-origin:0 0;will-change:transform;cursor:grab;z-index:1"></div>
+      <!-- Draw event capture overlay - shown only in draw mode, above world but transparent -->
+      <div id="draw-overlay" style="position:absolute;inset:0;z-index:3;display:none;cursor:crosshair;touch-action:none"></div>
     </div>
     <div id="map-compass" onclick="openMapSettings()" title="Innstillinger"
       style="position:absolute;bottom:60px;right:10px;z-index:100;
@@ -1070,15 +1218,12 @@ function openGardenMap() {
       display:flex;align-items:center;justify-content:center;
       cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2)">
     </div>
-    <div id="map-infobar" style="flex-shrink:0;min-height:44px;padding:8px 12px;
-      background:var(--bg-header);border-top:1px solid var(--border-accent);
-      font-size:12px;color:#6b7280;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      Trykk på en seng for detaljer
-    </div>`;
+`;
 
   document.body.appendChild(overlay);
   renderMapWorld();
   mapFitAll();
+  initDrawCanvas();
 
   const vp = document.getElementById('map-vp');
   // Use both touch and mouse events for maximum compatibility
@@ -1117,6 +1262,7 @@ function mapApplyTransform() {
   if (w) {
     w.style.transform = `translate(${mapOffX}px,${mapOffY}px)`;
     renderMapWorld();
+    redrawCanvas();
   }
 }
 
@@ -1308,49 +1454,57 @@ function renderMapWorld() {
     attachFieldDragInMap(el, el.dataset.fieldDrag);
   });
   world.querySelectorAll('[data-bed]').forEach(el => {
-    const bedLetter = el.dataset.bed.match(/^([A-Za-z]+)/)?.[1]||'A';
-    let bedDragStartX, bedDragStartY, bedDragging = false;
+    const bedId = el.dataset.bed;
+    const bedLetter = bedId.match(/^([A-Za-z]+)/)?.[1]||'A';
+    let startX, startY, moved = false;
 
-    // Mouse: start drag only if moved more than 6px (otherwise it's a tap/click)
+    // Mouse
     el.addEventListener('mousedown', e => {
-      bedDragStartX = e.clientX; bedDragStartY = e.clientY; bedDragging = false;
-      const fieldEl = world.querySelector(`[data-field-drag="${bedLetter}"]`);
-      const mm = ev => {
-        if (!bedDragging && Math.hypot(ev.clientX-bedDragStartX, ev.clientY-bedDragStartY) > 6) {
-          bedDragging = true;
-          if (fieldEl) fieldEl.dispatchEvent(new MouseEvent('mousedown', {bubbles:false, clientX:bedDragStartX, clientY:bedDragStartY}));
-        }
-        if (bedDragging) ev.stopPropagation();
-      };
-      const mu = () => { window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
-      window.addEventListener('mousemove', mm);
-      window.addEventListener('mouseup', mu);
+      startX = e.clientX; startY = e.clientY; moved = false;
       e.stopPropagation();
+      const fieldEl = world.querySelector(`[data-field-drag="${bedLetter}"]`);
+      const onMove = ev => {
+        if (Math.hypot(ev.clientX-startX, ev.clientY-startY) > 6) {
+          if (!moved) {
+            moved = true;
+            // Kick off field drag from original position
+            if (fieldEl) fieldEl.dispatchEvent(new MouseEvent('mousedown', {bubbles:false, clientX:startX, clientY:startY}));
+          }
+        }
+      };
+      const onUp = () => {
+        if (!moved) showBedPopup(bedId);
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+      };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
     });
 
-    // Touch: same — only proxy drag if moved > 6px
+    // Touch — use field element's own touch handlers directly
     el.addEventListener('touchstart', e => {
       if (e.touches.length !== 1) return;
-      bedDragStartX = e.touches[0].clientX; bedDragStartY = e.touches[0].clientY; bedDragging = false;
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY; moved = false;
       e.stopPropagation();
     }, {passive:true});
     el.addEventListener('touchmove', e => {
-      if (e.touches.length !== 1) return;
-      if (!bedDragging && Math.hypot(e.touches[0].clientX-bedDragStartX, e.touches[0].clientY-bedDragStartY) > 6) {
-        bedDragging = true;
+      if (e.touches.length !== 1 || moved) return;
+      if (Math.hypot(e.touches[0].clientX-startX, e.touches[0].clientY-startY) > 8) {
+        moved = true;
         const fieldEl = world.querySelector(`[data-field-drag="${bedLetter}"]`);
-        if (fieldEl) fieldEl.dispatchEvent(new TouchEvent('touchstart', {touches:e.touches, changedTouches:e.changedTouches, bubbles:false}));
+        if (fieldEl) {
+          // Directly call onStart on the field drag handler
+          fieldEl.dispatchEvent(new TouchEvent('touchstart', {
+            bubbles: false, cancelable: true,
+            touches: e.touches, changedTouches: e.changedTouches
+          }));
+        }
       }
-      if (bedDragging) e.stopPropagation();
     }, {passive:true});
     el.addEventListener('touchend', e => {
-      if (!bedDragging) { e.stopPropagation(); showBedPopup(el.dataset.bed); }
-      bedDragging = false;
+      if (!moved) showBedPopup(bedId);
+      moved = false;
     }, {passive:true});
-
-    el.addEventListener('click', e => {
-      if (!bedDragging) { e.stopPropagation(); showBedPopup(el.dataset.bed); }
-    });
   });
 
   // Update compass widget
@@ -1397,12 +1551,16 @@ function showBedPopup(bedId) {
 
   const popup = document.createElement('div');
   popup.id = 'map-bed-popup';
+  const popW = Math.min(300, vpRect.width - 16);
+  const popLeft = Math.max(vpRect.left + 8, Math.min(vpRect.right - popW - 8, vpRect.left + screenX));
+  const maxH = vpRect.height - 80;
+  const popTop = Math.max(vpRect.top + 8, Math.min(vpRect.bottom - 80, vpRect.top + screenY + 20));
   popup.style.cssText = `position:fixed;z-index:6000;
-    left:${Math.min(vpRect.right - 280, Math.max(vpRect.left + 8, vpRect.left + screenX))}px;
-    top:${Math.min(vpRect.bottom - 200, Math.max(vpRect.top + 8, vpRect.top + screenY + 20))}px;
-    width:270px;background:var(--bg-modal);border:1px solid var(--border-accent);
+    left:${popLeft}px;top:${popTop}px;
+    width:${popW}px;max-height:${maxH}px;overflow-y:auto;
+    background:var(--bg-modal);border:1px solid var(--border-accent);
     border-radius:14px;padding:14px;box-shadow:0 8px 32px rgba(0,0,0,0.4);
-    font-family:Georgia,serif`;
+    font-family:Georgia,serif;-webkit-overflow-scrolling:touch`;
 
   const cropList = bedCrops.length
     ? bedCrops.map(c => {
@@ -1444,16 +1602,19 @@ function showBedPopup(bedId) {
   document.getElementById('map-overlay').appendChild(popup);
   // Close on outside click
   setTimeout(() => {
+    const overlay = document.getElementById('map-overlay');
     const closePopup = e => {
-      if (!popup.contains(e.target)) {
+      if (!popup.contains(e.target) && e.target !== popup) {
         popup.remove();
         mapSelectedBedId = null;
         renderMapWorld();
-        document.getElementById('map-overlay')?.removeEventListener('click', closePopup);
+        overlay?.removeEventListener('click', closePopup);
+        overlay?.removeEventListener('touchend', closePopup);
       }
     };
-    document.getElementById('map-overlay')?.addEventListener('click', closePopup);
-  }, 50);
+    overlay?.addEventListener('click', closePopup);
+    overlay?.addEventListener('touchend', closePopup, {passive:true});
+  }, 100);
   renderMapWorld(); // re-render to show selection highlight
 }
 
@@ -1659,6 +1820,484 @@ function initCompassWheel() {
   canvas.addEventListener('touchmove',  e => { e.preventDefault(); update(angleFromEvent(e.touches[0].clientX,e.touches[0].clientY)); },{passive:false});
 }
 
+// ════════════════════════════════════════════════════════════════
+// TEGNEMODUS
+// ════════════════════════════════════════════════════════════════
+// All strokes stored as world-meter coords. Canvas redrawn from scratch on zoom/pan.
+// Eraser: stored as strokes with color='__eraser__', drawn with globalCompositeOperation='destination-out'
+// The canvas has a white background layer so eraser reveals white (paper).
+
+let drawToolbarVisible = true;
+
+function toggleDrawMode() {
+  drawMode = !drawMode;
+  drawToolbarVisible = true; // reset on toggle
+  const btn = document.getElementById('draw-mode-btn');
+  const tb  = document.getElementById('draw-toolbar');
+  const overlay = document.getElementById('draw-overlay');
+  if (btn) {
+    btn.style.background = drawMode ? 'rgba(107,76,42,0.12)' : 'var(--bg-card)';
+    btn.style.fontWeight  = drawMode ? '700' : '400';
+    btn.textContent = drawMode ? 'Tegning ✓' : 'Tegning';
+  }
+  const tbw = document.getElementById('draw-toolbar-wrapper');
+  if (tbw) tbw.style.display = drawMode ? 'block' : 'none';
+  if (tb) tb.style.display = drawMode && drawToolbarVisible ? 'flex' : 'none';
+  const tab = document.getElementById('draw-toolbar-tab');
+  if (tab) tab.style.display = drawMode && !drawToolbarVisible ? 'flex' : 'none';
+  if (overlay) overlay.style.display = drawMode ? 'block' : 'none';
+}
+
+function toggleDrawToolbar() {
+  drawToolbarVisible = !drawToolbarVisible;
+  const tb = document.getElementById('draw-toolbar');
+  const btn = document.getElementById('draw-toolbar-toggle');
+  const tbw = document.getElementById('draw-toolbar-wrapper');
+  if (tbw) tbw.style.display = drawMode ? 'block' : 'none';
+  if (tb) tb.style.display = drawMode && drawToolbarVisible ? 'flex' : 'none';
+  const tab = document.getElementById('draw-toolbar-tab');
+  if (tab) tab.style.display = drawMode && !drawToolbarVisible ? 'flex' : 'none';
+  if (btn) btn.textContent = drawToolbarVisible ? '▲' : '▼';
+}
+
+function toggleDrawPanel(name) {
+  ['color'].forEach(n => {
+    const el = document.getElementById('draw-panel-' + n);
+    if (!el) return;
+    if (n === name) {
+      const showing = el.style.display !== 'none';
+      el.style.display = showing ? 'none' : 'block';
+      if (!showing) {
+        const btn = document.getElementById('draw-btn-color');
+        if (btn) {
+          const r = btn.getBoundingClientRect();
+          el.style.left = Math.max(8, r.left) + 'px';
+          el.style.top = (r.bottom + 6) + 'px';
+        }
+      }
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+
+// Close panels on outside click
+document.addEventListener('click', e => {
+  ['size','brush','color'].forEach(n => {
+    const panel = document.getElementById('draw-panel-' + n);
+    const btn = document.getElementById('draw-btn-' + n);
+    if (panel && panel.style.display !== 'none') {
+      if (!panel.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+        panel.style.display = 'none';
+      }
+    }
+  });
+});
+
+function setDrawSize(s) { drawSize = s; }
+
+function setDrawBrush(v) {
+  drawBrush = v;
+  document.querySelectorAll('[data-brush]').forEach(el => {
+    el.style.background = el.dataset.brush === v ? '#ede8df' : '#fff8f0';
+    el.style.borderColor = el.dataset.brush === v ? '#6b4c2a' : '#c4b89a';
+  });
+  const panel = document.getElementById('draw-panel-brush');
+  if (panel) panel.style.display = 'none';
+  // Update main preview
+  const prev = document.getElementById('draw-brush-preview');
+  if (prev) {
+    const pc = prev.getContext('2d');
+    pc.clearRect(0,0,22,22);
+    pc.fillStyle='#1c1410'; pc.strokeStyle='#1c1410';
+    if (v === 'round') { pc.beginPath(); pc.arc(11,11,5,0,Math.PI*2); pc.fill(); }
+    else if (v === 'square') { pc.fillRect(4,4,14,14); }
+    else { pc.lineWidth=2; pc.beginPath(); pc.moveTo(4,18); pc.lineTo(18,4); pc.stroke();
+           pc.lineWidth=5; pc.beginPath(); pc.moveTo(4,10); pc.lineTo(18,14); pc.stroke(); }
+  }
+}
+
+function toggleEraser() {
+  if (drawColor === '__eraser__') {
+    setDrawColor(lastDrawColor); // toggle off — restore previous color
+  } else {
+    lastDrawColor = drawColor;
+    setDrawColor('__eraser__');
+  }
+}
+
+function setDrawColor(c) {
+  drawColor = c;
+  fillMode = false;
+  const DARK_BG   = 'rgba(0,0,0,0.3)';
+  const DARK_TEXT = '#e8ddd0';
+  const ACTIVE_BG = 'rgba(255,255,255,0.15)';
+
+  // Reset fill button to dark inactive
+  const fb = document.getElementById('fill-tool-btn');
+  if (fb) { fb.style.background = DARK_BG; fb.style.borderColor = '#4a3830'; fb.style.color = DARK_TEXT; fb.style.fontWeight = '400'; }
+
+  document.querySelectorAll('[data-color]').forEach(el => {
+    el.style.outline = el.dataset.color === c ? '2.5px solid #6b4c2a' : 'none';
+    el.style.outlineOffset = '2px';
+  });
+  const dot = document.getElementById('draw-color-dot');
+  if (dot) dot.style.background = c === '__eraser__' ? '#e5e7eb' : c;
+  const panel = document.getElementById('draw-panel-color');
+  if (panel && c !== '__eraser__') panel.style.display = 'none';
+
+  // Eraser button active/inactive
+  const eb = document.getElementById('draw-eraser-btn');
+  if (eb) {
+    eb.style.background  = c === '__eraser__' ? ACTIVE_BG : DARK_BG;
+    eb.style.borderColor = c === '__eraser__' ? '#c4b89a'  : '#4a3830';
+    eb.style.color       = DARK_TEXT;
+    eb.style.fontWeight  = c === '__eraser__' ? '700' : '400';
+  }
+}
+
+function toggleFillTool() {
+  fillMode = !fillMode;
+  const DARK_BG   = 'rgba(0,0,0,0.3)';
+  const DARK_TEXT = '#e8ddd0';
+  const ACTIVE_BG = 'rgba(255,255,255,0.15)';
+  const btn = document.getElementById('fill-tool-btn');
+  if (btn) {
+    btn.style.background  = fillMode ? ACTIVE_BG : DARK_BG;
+    btn.style.borderColor = fillMode ? '#c4b89a'  : '#4a3830';
+    btn.style.color       = DARK_TEXT;
+    btn.style.fontWeight  = fillMode ? '700' : '400';
+  }
+  const overlay = document.getElementById('draw-overlay');
+  if (overlay) overlay.style.cursor = fillMode ? 'cell' : 'crosshair';
+}
+
+function clearDrawing() {
+  gardenMap.drawStrokes = [];
+  saveGardenMap();
+  redrawCanvas();
+}
+
+function initDrawCanvas() {
+  const canvas = document.getElementById('draw-canvas');
+  const vp = document.getElementById('map-vp');
+  if (!canvas || !vp) return;
+
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = vp.clientWidth  * dpr;
+    canvas.height = vp.clientHeight * dpr;
+    canvas.style.width  = vp.clientWidth  + 'px';
+    canvas.style.height = vp.clientHeight + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    redrawCanvas();
+  }
+  resizeCanvas();
+  new ResizeObserver(resizeCanvas).observe(vp);
+
+  // Wire size slider
+  const sizeInput = document.getElementById('draw-size');
+  if (sizeInput) sizeInput.addEventListener('input', () => { drawSize = +sizeInput.value; });
+
+  // Wire opacity slider
+  const opacitySlider = document.getElementById('draw-opacity');
+  if (opacitySlider) opacitySlider.addEventListener('input', () => {
+    drawOpacity = +opacitySlider.value / 100;
+  });
+
+  // Draw brush preview canvases
+  function renderBrushPreviews() {
+    document.querySelectorAll('.brush-sample').forEach(c => {
+      const bt = c.dataset.brushtype, sz = +c.dataset.sz;
+      const cx2 = c.getContext('2d');
+      cx2.clearRect(0,0,40,28);
+      cx2.fillStyle = '#1c1410';
+      if (bt === 'round') {
+        cx2.beginPath(); cx2.moveTo(4,14); cx2.lineTo(36,14);
+        cx2.strokeStyle='#1c1410'; cx2.lineWidth=sz*0.3; cx2.lineCap='round'; cx2.stroke();
+      } else if (bt === 'square') {
+        cx2.beginPath(); cx2.moveTo(4,14); cx2.lineTo(36,14);
+        cx2.strokeStyle='#1c1410'; cx2.lineWidth=sz*0.3; cx2.lineCap='square'; cx2.stroke();
+      } else {
+        // Calligraphy sample: diagonal stroke varying width
+        for (let i=0; i<10; i++) {
+          const x1=4+i*3.2, x2=x1+3.5, y=10+i*0.8;
+          const ang = Math.atan2(0.8, 3.5);
+          const w = Math.max(1, sz * 0.25 * (0.1 + 0.9*Math.abs(Math.sin(ang + i*0.3))));
+          cx2.beginPath(); cx2.lineWidth=w; cx2.moveTo(x1,y); cx2.lineTo(x2,y+0.8);
+          cx2.strokeStyle='#1c1410'; cx2.stroke();
+        }
+      }
+    });
+    // Also update the main brush preview button canvas
+    const prev = document.getElementById('draw-brush-preview');
+    if (prev) {
+      const pc = prev.getContext('2d');
+      pc.clearRect(0,0,22,22);
+      pc.fillStyle='#1c1410'; pc.strokeStyle='#1c1410';
+      if (drawBrush === 'round') {
+        pc.beginPath(); pc.arc(11,11,5,0,Math.PI*2); pc.fill();
+      } else if (drawBrush === 'square') {
+        pc.fillRect(4,4,14,14);
+      } else {
+        pc.lineWidth=2; pc.beginPath(); pc.moveTo(4,18); pc.lineTo(18,4); pc.stroke();
+        pc.lineWidth=5; pc.beginPath(); pc.moveTo(4,10); pc.lineTo(18,14); pc.stroke();
+      }
+    }
+  }
+  renderBrushPreviews();
+
+  // Let wheel events pass through to map
+  canvas.addEventListener('wheel', e => { e.stopPropagation(); mapWheel(e); }, {passive:false});
+
+  let currentStroke = null;
+
+  function screenToWorld(sx, sy) {
+    return { x: (sx - mapOffX) / (mapScale * MAP_PX_PER_M), y: (sy - mapOffY) / (mapScale * MAP_PX_PER_M) };
+  }
+
+  function startStroke(sx, sy) {
+    if (!drawMode) return;
+    if (fillMode) { doFill(sx, sy); return; }
+    const wp = screenToWorld(sx, sy);
+    const isEraser = drawColor === '__eraser__';
+    currentStroke = { color: isEraser ? '__eraser__' : drawColor, size: drawSize, brush: drawBrush, opacity: isEraser ? 1 : drawOpacity, points: [wp] };
+    if (!gardenMap.drawStrokes) gardenMap.drawStrokes = [];
+    gardenMap.drawStrokes.push(currentStroke);
+    redrawCanvas();
+  }
+
+  function continueStroke(sx, sy) {
+    if (!drawMode || !currentStroke || fillMode) return;
+    const wp = screenToWorld(sx, sy);
+    currentStroke.points.push(wp);
+    redrawCanvas(); // full redraw each move for correctness
+  }
+
+  function endStroke() {
+    if (currentStroke) saveGardenMap();
+    currentStroke = null;
+  }
+
+  // Attach events to draw-overlay (sits above world, canvas stays at z:0)
+  const overlay = document.getElementById('draw-overlay');
+  if (!overlay) return;
+
+  function getOverlayPos(e) {
+    const r = overlay.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  overlay.addEventListener('mousedown', e => { e.preventDefault(); const p=getOverlayPos(e); startStroke(p.x,p.y); });
+  overlay.addEventListener('mousemove', e => { if (e.buttons&1) { e.preventDefault(); const p=getOverlayPos(e); continueStroke(p.x,p.y); }});
+  overlay.addEventListener('mouseup', endStroke);
+  overlay.addEventListener('mouseleave', endStroke);
+  overlay.addEventListener('wheel', e => { e.stopPropagation(); mapWheel(e); }, {passive:false});
+
+  overlay.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      const r = overlay.getBoundingClientRect();
+      startStroke(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top);
+    } else if (e.touches.length === 2) {
+      endStroke();
+      mapTouchStart(e);
+    }
+  }, {passive:false});
+
+  overlay.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1 && currentStroke) {
+      const r = overlay.getBoundingClientRect();
+      continueStroke(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top);
+    } else if (e.touches.length === 2) {
+      mapTouchMove(e);
+    }
+  }, {passive:false});
+
+  overlay.addEventListener('touchend', e => {
+    if (e.touches.length === 0) endStroke();
+    else mapTouchEnd(e);
+  }, {passive:true});
+}
+
+function worldToScreen(mx, my) {
+  // meters → screen pixels
+  return {
+    x: mx * MAP_PX_PER_M * mapScale + mapOffX,
+    y: my * MAP_PX_PER_M * mapScale + mapOffY
+  };
+}
+
+function redrawCanvas() {
+  const canvas = document.getElementById('draw-canvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.width / dpr, H = canvas.height / dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  if (!gardenMap.drawStrokes || !gardenMap.drawStrokes.length) { ctx.restore(); return; }
+
+  // Draw all strokes
+  gardenMap.drawStrokes.forEach(stroke => {
+    if (stroke.type === 'fill') {
+      // Fills are stored as pixel operations — re-execute them on redraw
+      const sp = worldToScreen(stroke.point.x, stroke.point.y);
+      doFillOnCtx(ctx, W, H, sp.x, sp.y, stroke.color);
+      return;
+    }
+    if (!stroke.points || stroke.points.length === 0) return;
+    const isEraser = stroke.color === '__eraser__';
+    const sz = Math.max(1, stroke.size * mapScale);
+
+    ctx.save();
+    ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+    ctx.globalAlpha = isEraser ? 1 : Math.max(0.01, Math.min(1, stroke.opacity ?? 1));
+    const drawColor2 = isEraser ? 'rgba(0,0,0,1)' : stroke.color;
+    ctx.strokeStyle = drawColor2;
+    ctx.fillStyle   = drawColor2;
+    ctx.lineWidth   = sz;
+    ctx.lineCap     = stroke.brush === 'square' ? 'square' : 'round';
+    ctx.lineJoin    = 'round';
+
+    const pts = stroke.points.map(p => worldToScreen(p.x, p.y));
+
+    if (pts.length === 1) {
+      ctx.beginPath();
+      ctx.arc(pts[0].x, pts[0].y, sz / 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (stroke.brush === 'calligraphy') {
+      if (pts.length < 2) {
+        ctx.beginPath(); ctx.arc(pts[0].x, pts[0].y, sz*0.3, 0, Math.PI*2); ctx.fill();
+      } else {
+        // Smooth angle using a running window to avoid sudden direction changes
+        const WINDOW = 5;
+        const smoothAngles = pts.map((p, i) => {
+          const a = Math.max(0, i - WINDOW), b = Math.min(pts.length-1, i + WINDOW);
+          const dx = pts[b].x - pts[a].x, dy = pts[b].y - pts[a].y;
+          return Math.atan2(dy, dx);
+        });
+
+        // Compute widths with smoothed angles, then apply low-pass filter on width
+        const rawW = smoothAngles.map(angle =>
+          Math.max(0.5, sz * 0.5 * (0.12 + 0.88 * Math.abs(Math.sin(angle))))
+        );
+        const smoothW = [...rawW];
+        const WSMOOTH = 8; // width smoothing passes
+        for (let pass = 0; pass < WSMOOTH; pass++) {
+          for (let i = 1; i < smoothW.length - 1; i++) {
+            smoothW[i] = smoothW[i] * 0.5 + smoothW[i-1] * 0.25 + smoothW[i+1] * 0.25;
+          }
+        }
+
+        // Build ribbon with smoothed normals and widths
+        const top = [], bot = [];
+        for (let i = 0; i < pts.length; i++) {
+          const a = smoothAngles[i];
+          const nx = -Math.sin(a), ny = Math.cos(a);
+          const w = smoothW[i];
+          top.push({ x: pts[i].x + nx*w, y: pts[i].y + ny*w });
+          bot.push({ x: pts[i].x - nx*w, y: pts[i].y - ny*w });
+        }
+
+        // Draw smooth ribbon
+        ctx.beginPath();
+        ctx.moveTo(top[0].x, top[0].y);
+        for (let i = 1; i < top.length; i++) {
+          const mx = (top[i-1].x + top[i].x)/2, my = (top[i-1].y + top[i].y)/2;
+          ctx.quadraticCurveTo(top[i-1].x, top[i-1].y, mx, my);
+        }
+        ctx.lineTo(top[top.length-1].x, top[top.length-1].y);
+        for (let i = bot.length-1; i >= 0; i--) {
+          const ni = Math.min(bot.length-1, i+1);
+          const mx = (bot[i].x + bot[ni].x)/2, my = (bot[i].y + bot[ni].y)/2;
+          ctx.quadraticCurveTo(bot[ni].x, bot[ni].y, mx, my);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        if (i < pts.length - 1) {
+          const mx = (pts[i].x + pts[i+1].x) / 2;
+          const my = (pts[i].y + pts[i+1].y) / 2;
+          ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+        } else {
+          ctx.lineTo(pts[i].x, pts[i].y);
+        }
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  });
+
+  ctx.restore();
+}
+
+function doFill(sx, sy) {
+  const canvas = document.getElementById('draw-canvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.width / dpr, H = canvas.height / dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  doFillOnCtx(ctx, W, H, sx, sy, drawColor);
+  ctx.restore();
+
+  const mp = { x: (sx - mapOffX) / (mapScale * MAP_PX_PER_M), y: (sy - mapOffY) / (mapScale * MAP_PX_PER_M) };
+  if (!gardenMap.drawStrokes) gardenMap.drawStrokes = [];
+  gardenMap.drawStrokes.push({ type: 'fill', color: drawColor, point: mp });
+  saveGardenMap();
+}
+
+function doFillOnCtx(ctx, W, H, sx, sy, fillColorHex) {
+  // Get pixel data at CSS scale
+  const dpr = window.devicePixelRatio || 1;
+  const canvas = document.getElementById('draw-canvas');
+  if (!canvas) return;
+  const imgData = ctx.getImageData(0, 0, W * dpr, H * dpr);
+  const data = imgData.data;
+  const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
+  const px0 = Math.round(sx * dpr), py0 = Math.round(sy * dpr);
+  if (px0 < 0 || px0 >= pw || py0 < 0 || py0 >= ph) return;
+
+  const tmp = document.createElement('canvas'); tmp.width = 1; tmp.height = 1;
+  const tc = tmp.getContext('2d'); tc.fillStyle = fillColorHex; tc.fillRect(0,0,1,1);
+  const fc = tc.getImageData(0,0,1,1).data;
+  const [fr,fg,fb,fa] = [fc[0],fc[1],fc[2],255];
+
+  const i0 = (py0 * pw + px0) * 4;
+  const [sr,sg,sb,sa] = [data[i0],data[i0+1],data[i0+2],data[i0+3]];
+  if (sr===fr && sg===fg && sb===fb && sa===fa) return;
+
+  const match = i => Math.abs(data[i]-sr)<40 && Math.abs(data[i+1]-sg)<40 && Math.abs(data[i+2]-sb)<40 && Math.abs(data[i+3]-sa)<40;
+  const set   = i => { data[i]=fr; data[i+1]=fg; data[i+2]=fb; data[i+3]=255; };
+
+  const stack = [py0 * pw + px0];
+  const vis = new Uint8Array(pw * ph);
+  vis[py0 * pw + px0] = 1;
+  while (stack.length) {
+    const pos = stack.pop();
+    set(pos * 4);
+    const px = pos % pw, py = (pos / pw) | 0;
+    for (const [nx, ny] of [[px-1,py],[px+1,py],[px,py-1],[px,py+1]]) {
+      if (nx<0||nx>=pw||ny<0||ny>=ph) continue;
+      const ni = ny*pw+nx;
+      if (!vis[ni] && match(ni*4)) { vis[ni]=1; stack.push(ni); }
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+
 function resolveOverlapMeters(mx, my, movingLetter) {
   const GAP = 1.0; // 1 meter min gap between fields
   const letters = mapFieldLetters();
@@ -1719,6 +2358,7 @@ function resolveOverlapMeters(mx, my, movingLetter) {
 
 // ── Touch events (pan + pinch) ──────────────────────────────────
 function mapTouchStart(e) {
+  if (drawMode && e.touches.length < 2) return; // 1-finger: canvas draws
   e.preventDefault();
   const touches = e.touches;
   if (touches.length === 1) {
@@ -1735,6 +2375,7 @@ function mapTouchStart(e) {
 }
 
 function mapTouchMove(e) {
+  if (drawMode && e.touches.length < 2) return;
   e.preventDefault();
   const touches = e.touches;
   if (touches.length === 1 && mapTouch1 && !mapTouch2) {
@@ -1758,6 +2399,7 @@ function mapTouchMove(e) {
 }
 
 function mapTouchEnd(e) {
+  if (drawMode && e.changedTouches.length < 2 && e.touches.length === 0 && !mapTouch2) return;
   e.preventDefault();
   if (e.touches.length === 0) {
     mapTouch1 = null; mapTouch2 = null;
@@ -1770,6 +2412,7 @@ function mapTouchEnd(e) {
 
 // ── Mouse events (desktop pan) ───────────────────────────────────
 function mapMouseDown(e) {
+  if (drawMode && !e.ctrlKey) return; // in draw mode, only pan with Ctrl held
   e.preventDefault();
   _mapMouseActive = true;
   mapMouseX = e.clientX; mapMouseY = e.clientY;
@@ -1794,7 +2437,7 @@ function showMapBedInfo(bedId) {
   const bedCrops = getCropsInBed(bedId);
   const sz = bedSizes[bedId]||{length:'?',width:'?'};
   const bar = document.getElementById('map-infobar');
-  if (!bar) return;
+  if (!bar) return; // infobar removed
   bar.innerHTML = `
     <strong style="color:#6ee7b7;flex-shrink:0">Seng ${bedId}</strong>
     <span style="color:#6b7280;font-size:12px;flex-shrink:0">${sz.length}m × ${sz.width}m</span>
@@ -1937,8 +2580,8 @@ function openMapSettings() {
     </div>`;
 
   document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); initCompassWheel();
-});
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  setTimeout(initCompassWheel, 0);
 }
 
 
@@ -2010,8 +2653,8 @@ function renderSenger() {
   const visibleBeds = bedFieldFilter === 'alle' ? BED_IDS : BED_IDS.filter(id => (id.match(/^([A-Za-z]+)/)?.[1] || '') === bedFieldFilter);
 
   document.getElementById('tab-senger').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <h2 style="font-size:16px;font-weight:400;color:var(--text-head);margin:0">Sengekart (${BED_IDS.length} senger)</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px">
+      <h2 style="font-size:16px;font-weight:400;color:var(--text-head);margin:0;white-space:nowrap">Sengekart (${BED_IDS.length})</h2>
       <div style="display:flex;gap:8px">
         <button onclick="openGardenMap()" style="padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit">Kart</button>
         <button onclick="openAddBed()" style="padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit">+ Legg til seng</button>
@@ -2880,8 +3523,8 @@ function openFocusModal() {
       }
     </div>`;
   document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); initCompassWheel();
-});
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  setTimeout(initCompassWheel, 0);
 }
 
 
@@ -4041,6 +4684,7 @@ function applyTheme() {
   document.body.classList.toggle('light', currentTheme === 'light');
   const btn = document.getElementById('theme-menu-btn');
   if (btn) btn.textContent = currentTheme === 'dark' ? '☀ Lyst tema' : '🌙 Mørkt tema';
+  renderSyncBtn(); // re-render sync button color
 }
 
 function initSync() {
@@ -4064,7 +4708,7 @@ function initSync() {
 function renderSyncBtn() {
   const btn = document.getElementById('gist-btn');
   if (!btn) return;
-  btn.style.color = syncConnected ? '#34d399' : '#6b7280';
+  btn.style.color = syncConnected ? (document.body.classList.contains('light') ? '#5a8a4a' : '#34d399') : '#6b7280';
   btn.title = syncConnected ? 'JSONBin synkronisering – tilkoblet' : 'Koble til synkronisering';
 }
 
@@ -4143,24 +4787,19 @@ function gistSetup() {
 async function syncLoadOnStart() {
   try {
     if (!syncBinId) {
-      // No bin yet — create one from current local data
-            await syncSave();
+      await syncSave();
       return;
     }
 
-    // Fetch remote data and compare timestamps
+    // Fetch remote data
     const resp = await fetch(`${JSONBIN_API}/${syncBinId}/latest?t=${Date.now()}`, {
       headers: { 'X-Master-Key': syncKey, 'X-Bin-Meta': 'false', 'Cache-Control': 'no-store' }, cache: 'no-store'
     });
-    if (!resp.ok) {
-            return;
-    }
+    if (!resp.ok) return;
     const remote = await resp.json();
-    if (!remote || !remote.crops) {
-            return;
-    }
+    if (!remote || !remote.crops) return;
 
-    // Compare with local timestamp
+    // Check local timestamp
     let localSaved = null;
     try {
       const raw = localStorage.getItem('mh_data');
@@ -4168,23 +4807,24 @@ async function syncLoadOnStart() {
     } catch(e) {}
 
     const remoteSaved = remote.saved || null;
+
+    // Load remote if: no local data, no local timestamp, or remote is newer
+    const hasNoLocal = !localStorage.getItem('mh_data');
     const remoteIsNewer = !localSaved || (remoteSaved && new Date(remoteSaved) > new Date(localSaved));
 
-    console.log('Local saved:', localSaved, '| Remote saved:', remoteSaved, '| Remote newer:', remoteIsNewer);
-
-    if (remoteIsNewer) {
+    if (hasNoLocal || remoteIsNewer) {
       if (remote.crops)   crops    = remote.crops;
       if (remote.tasks)   tasks    = remote.tasks;
       if (remote.bedSizes) bedSizes = remote.bedSizes;
       if (remote.bedIDs && remote.bedIDs.length) BED_IDS = remote.bedIDs;
+      if (remote.gardenMap) gardenMap = remote.gardenMap;
       saveToLocal();
       clearTimeout(syncTimer); syncTimer = null;
       render();
-          } else {
-          }
+    }
   } catch(e) {
     console.warn('syncLoadOnStart error:', e);
-      }
+  }
 }
 
 // Load data from JSONBin and import it
