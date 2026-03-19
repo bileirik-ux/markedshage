@@ -135,6 +135,7 @@
     border: 1.5px solid rgba(255,255,255,0.08);
   }
   .bed-cell.occupied { background: rgba(52,211,153,0.07); border-color: rgba(52,211,153,0.25); }
+  body.light .bed-cell.occupied { background: rgba(107,76,42,0.08); border-color: rgba(107,76,42,0.25); }
   .bed-cell.selected { border-color: #34d399 !important; }
   .bed-label { font-size: 10px; color: #6b7280; letter-spacing: 0.12em; text-transform: uppercase; }
   .bed-emoji { float: right; font-size: 16px; }
@@ -145,6 +146,10 @@
     background: rgba(52,211,153,0.08);
     border: 1px solid rgba(52,211,153,0.25);
     border-radius: 12px; padding: 16px;
+  }
+  body.light .bed-detail {
+    background: var(--bg-card);
+    border-color: var(--border);
   }
 
   /* end removed */
@@ -503,6 +508,7 @@ let cropFilter = "alle";
 let cropSearch = "";
 let expandedCrops = new Set();
 let focusTaskIds  = new Set();   // tasks pinned to focus modal
+let taskHistory   = [];           // completed tasks history
 let taskOrder     = {};          // priority -> [id, id, ...] custom order
 let currentTheme  = (localStorage.getItem('mh_theme') || 'light');
 let gardenMap     = null;        // { elements: [...] } for garden map
@@ -1029,6 +1035,7 @@ function getFieldSizeM(letter) {
 
 // ── Map state ──────────────────────────────────────────────────
 let mapOpen = false;
+let mapLocked = true; // beds locked by default
 let drawMode = false;
 let drawColor = '#1c1410';
 let lastDrawColor = '#1c1410'; // remembered before eraser
@@ -1088,6 +1095,7 @@ function openGardenMap() {
       <div style="flex:1;display:flex;justify-content:center;gap:6px;align-items:center">
         <button onclick="openMapSettings()" style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);cursor:pointer;font-size:12px;font-family:inherit">Innstillinger</button>
         <button id="draw-mode-btn" onclick="toggleDrawMode()" style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-head);cursor:pointer;font-size:12px;font-family:inherit">Tegning</button>
+        <button id="map-lock-btn" onclick="toggleMapLock()" style="padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:13px;font-family:inherit;filter:grayscale(1)" title="Låst – trykk for å låse opp">🔒</button>
       </div>
       <!-- Close right -->
       <button onclick="closeGardenMap()" style="padding:5px 10px;border-radius:8px;
@@ -1098,7 +1106,7 @@ function openGardenMap() {
     <div style="display:none" id="draw-toolbar-wrapper">
     <div id="draw-toolbar" style="display:none;flex-shrink:0;
       background:#2c2420;border-bottom:2px solid #1a1410;
-      padding:8px 12px;gap:8px;align-items:center;flex-wrap:wrap;font-family:Georgia,serif">
+      padding:8px 12px;gap:8px;align-items:center;flex-wrap:wrap;font-family:Georgia,serif;justify-content:center">
 
       <!-- Size slider -->
       <div style="display:flex;align-items:center;gap:6px">
@@ -1166,7 +1174,7 @@ function openGardenMap() {
       <button onclick="toggleDrawToolbar()"
         style="padding:5px 9px;border-radius:7px;border:1px solid #6b5a50;
         background:transparent;color:#e8ddd0;cursor:pointer;font-size:11px;
-        font-family:inherit;margin-left:auto">▲ Skjul</button>
+        font-family:inherit">▲ Skjul</button>
     </div>
 
     <!-- Color panel -->
@@ -1247,6 +1255,13 @@ function mapWheel(e) {
   mapOffY = cy - (cy - mapOffY) * factor;
   mapScale = Math.max(0.05, Math.min(8, mapScale * factor));
   mapApplyTransform();
+}
+
+function toggleMapLock() {
+  mapLocked = !mapLocked;
+  const btn = document.getElementById('map-lock-btn');
+  if (btn) { btn.textContent = mapLocked ? '🔒' : '🔓'; btn.style.fontSize = '13px'; btn.style.filter = 'grayscale(1)'; }
+  renderMapWorld();
 }
 
 function closeGardenMap() {
@@ -1433,16 +1448,27 @@ function renderMapWorld() {
 
   world.innerHTML = html;
 
-  // Re-add area box (innerHTML cleared it)
+  // Re-add area box centered around beds
   if (gardenMap.areaW > 0 && gardenMap.areaH > 0) {
     const aW = gardenMap.areaW * S, aH = gardenMap.areaH * S;
+    // Center the area around the beds
+    const allX = Object.values(layout).flatMap(p=>[p.x, p.x+p.w]);
+    const allY = Object.values(layout).flatMap(p=>[p.y, p.y+p.h]);
+    const bedsMinX = allX.length ? Math.min(...allX) : 0;
+    const bedsMaxX = allX.length ? Math.max(...allX) : aW;
+    const bedsMinY = allY.length ? Math.min(...allY) : 0;
+    const bedsMaxY = allY.length ? Math.max(...allY) : aH;
+    const bedsMidX = (bedsMinX + bedsMaxX) / 2;
+    const bedsMidY = (bedsMinY + bedsMaxY) / 2;
+    const aLeft = bedsMidX - aW/2;
+    const aTop  = bedsMidY - aH/2;
     const aBox = document.createElement('div');
-    aBox.style.cssText = `position:absolute;left:0;top:0;width:${aW}px;height:${aH}px;
+    aBox.style.cssText = `position:absolute;left:${aLeft}px;top:${aTop}px;width:${aW}px;height:${aH}px;
       border:2px dashed ${isLight?'rgba(0,0,0,0.2)':'rgba(255,255,255,0.15)'};
       border-radius:4px;pointer-events:none;box-sizing:border-box;z-index:0`;
     world.appendChild(aBox);
     const aLbl = document.createElement('div');
-    aLbl.style.cssText = `position:absolute;left:8px;top:5px;
+    aLbl.style.cssText = `position:absolute;left:${aLeft+8}px;top:${aTop+5}px;
       font-size:${Math.max(12,Math.round(11*mapScale))}px;
       color:${isLight?'rgba(0,0,0,0.3)':'rgba(255,255,255,0.25)'};
       font-family:Georgia,serif;pointer-events:none;z-index:0`;
@@ -1451,7 +1477,8 @@ function renderMapWorld() {
   }
 
   world.querySelectorAll('[data-field-drag]').forEach(el => {
-    attachFieldDragInMap(el, el.dataset.fieldDrag);
+    if (!mapLocked) attachFieldDragInMap(el, el.dataset.fieldDrag);
+    else el.style.cursor = 'default';
   });
   world.querySelectorAll('[data-bed]').forEach(el => {
     const bedId = el.dataset.bed;
@@ -1461,6 +1488,7 @@ function renderMapWorld() {
     // Mouse
     el.addEventListener('mousedown', e => {
       startX = e.clientX; startY = e.clientY; moved = false;
+      if (mapLocked) { setTimeout(() => { if (!moved) showBedPopup(bedId); }, 0); e.stopPropagation(); return; }
       e.stopPropagation();
       const fieldEl = world.querySelector(`[data-field-drag="${bedLetter}"]`);
       const onMove = ev => {
@@ -1552,15 +1580,16 @@ function showBedPopup(bedId) {
   const popup = document.createElement('div');
   popup.id = 'map-bed-popup';
   const popW = Math.min(300, vpRect.width - 16);
+  const maxH = Math.round(vpRect.height * 0.7); // max 70% of screen height
   const popLeft = Math.max(vpRect.left + 8, Math.min(vpRect.right - popW - 8, vpRect.left + screenX));
-  const maxH = vpRect.height - 80;
-  const popTop = Math.max(vpRect.top + 8, Math.min(vpRect.bottom - 80, vpRect.top + screenY + 20));
+  const popTop = Math.max(vpRect.top + 8, Math.min(vpRect.bottom - maxH - 8, vpRect.top + screenY + 20));
   popup.style.cssText = `position:fixed;z-index:6000;
     left:${popLeft}px;top:${popTop}px;
-    width:${popW}px;max-height:${maxH}px;overflow-y:auto;
+    width:${popW}px;max-height:${maxH}px;
+    display:flex;flex-direction:column;
     background:var(--bg-modal);border:1px solid var(--border-accent);
-    border-radius:14px;padding:14px;box-shadow:0 8px 32px rgba(0,0,0,0.4);
-    font-family:Georgia,serif;-webkit-overflow-scrolling:touch`;
+    border-radius:14px;padding:0;box-shadow:0 8px 32px rgba(0,0,0,0.4);
+    font-family:Georgia,serif`;
 
   const cropList = bedCrops.length
     ? bedCrops.map(c => {
@@ -1583,7 +1612,7 @@ function showBedPopup(bedId) {
     : `<div style="font-size:12px;color:var(--text-muted);padding:8px 0">Ingen vekster i denne sengen</div>`;
 
   popup.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="padding:12px 14px 8px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;justify-content:space-between;align-items:center">
       <strong style="font-size:14px;color:var(--accent-soft)">Seng ${bedId}</strong>
       <div style="display:flex;gap:8px;align-items:center">
         <span style="font-size:12px;color:var(--text-muted)">${sz.length}m × ${sz.width}m</span>
@@ -1591,13 +1620,17 @@ function showBedPopup(bedId) {
           style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;line-height:1">×</button>
       </div>
     </div>
-    ${cropList}
-    <button onclick="document.getElementById('map-bed-popup').remove();closeGardenMap();showTab('senger');setTimeout(()=>selectBed('${bedId}'),150)"
-      style="width:100%;margin-top:10px;padding:8px;border-radius:8px;
-      border:1px solid var(--accent);background:var(--accent-bg);
-      color:var(--accent-soft);cursor:pointer;font-size:12px;font-family:inherit">
-      Åpne i Senger →
-    </button>`;
+    <div style="overflow-y:auto;flex:1;padding:10px 14px;-webkit-overflow-scrolling:touch">
+      ${cropList}
+    </div>
+    <div style="padding:8px 14px;border-top:1px solid var(--border);flex-shrink:0">
+      <button onclick="document.getElementById('map-bed-popup').remove();closeGardenMap();showTab('senger');setTimeout(()=>selectBed('${bedId}'),150)"
+        style="width:100%;padding:8px;border-radius:8px;
+        border:1px solid var(--accent);background:var(--accent-bg);
+        color:var(--accent-soft);cursor:pointer;font-size:12px;font-family:inherit">
+        Åpne i Senger →
+      </button>
+    </div>`;
 
   document.getElementById('map-overlay').appendChild(popup);
   // Close on outside click
@@ -1829,6 +1862,30 @@ function initCompassWheel() {
 
 let drawToolbarVisible = true;
 
+function showSizeDot(sz, sliderEl) {
+  let dot = document.getElementById('draw-size-dot');
+  if (!dot) {
+    dot = document.createElement('div');
+    dot.id = 'draw-size-dot';
+    dot.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;border-radius:50%;background:#1c1410;transform:translate(-50%,-100%) translateY(-10px);transition:width 0.1s,height 0.1s';
+    document.body.appendChild(dot);
+  }
+  const r = sliderEl.getBoundingClientRect();
+  const pct = (sz - 1) / (80 - 1);
+  const x = r.left + pct * r.width;
+  const y = r.top;
+  const dispSz = Math.min(sz, 60);
+  dot.style.width  = dispSz + 'px';
+  dot.style.height = dispSz + 'px';
+  dot.style.left   = x + 'px';
+  dot.style.top    = y + 'px';
+  dot.style.display = 'block';
+}
+function hideSizeDot() {
+  const dot = document.getElementById('draw-size-dot');
+  if (dot) dot.style.display = 'none';
+}
+
 function toggleDrawMode() {
   drawMode = !drawMode;
   drawToolbarVisible = true; // reset on toggle
@@ -1996,9 +2053,16 @@ function initDrawCanvas() {
   resizeCanvas();
   new ResizeObserver(resizeCanvas).observe(vp);
 
-  // Wire size slider
+  // Wire size slider with live dot preview
   const sizeInput = document.getElementById('draw-size');
-  if (sizeInput) sizeInput.addEventListener('input', () => { drawSize = +sizeInput.value; });
+  if (sizeInput) {
+    sizeInput.addEventListener('input', () => {
+      drawSize = +sizeInput.value;
+      showSizeDot(drawSize, sizeInput);
+    });
+    sizeInput.addEventListener('mouseup', hideSizeDot);
+    sizeInput.addEventListener('touchend', hideSizeDot);
+  }
 
   // Wire opacity slider
   const opacitySlider = document.getElementById('draw-opacity');
@@ -2414,7 +2478,7 @@ function mapTouchEnd(e) {
 
 // ── Mouse events (desktop pan) ───────────────────────────────────
 function mapMouseDown(e) {
-  if (drawMode && !e.ctrlKey) return; // in draw mode, only pan with Ctrl held
+  if (drawMode && !e.ctrlKey) return; // in draw mode, only pan with Ctrl
   e.preventDefault();
   _mapMouseActive = true;
   mapMouseX = e.clientX; mapMouseY = e.clientY;
@@ -2656,9 +2720,9 @@ function renderSenger() {
 
   document.getElementById('tab-senger').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px">
-      <h2 style="font-size:16px;font-weight:400;color:var(--text-head);margin:0;white-space:nowrap">Sengekart (${BED_IDS.length})</h2>
+      <h2 style="font-size:16px;font-weight:400;color:var(--text-head);margin:0;white-space:nowrap">Senger (${BED_IDS.length})</h2>
       <div style="display:flex;gap:8px">
-        <button onclick="openGardenMap()" style="padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit">Kart</button>
+        <button onclick="openGardenMap()" style="padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit">Oversiktskart</button>
         <button onclick="openAddBed()" style="padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:12px;font-family:inherit">+ Legg til seng</button>
       </div>
     </div>
@@ -2744,7 +2808,7 @@ function renderSenger() {
               const g = calcGang(o.crop, o.spec);
               const segLen = o.end - o.start + 1;
               const hasSegment = parseBedSpec(o.spec).start !== null;
-              return `<div style="padding:12px;border-radius:10px;background:rgba(52,211,153,0.06);border:1px solid var(--border-accent);margin-bottom:8px">
+              return `<div style="padding:12px;border-radius:10px;background:var(--bg-card);border:1px solid var(--border);margin-bottom:8px">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
                   <span style="font-size:24px">${o.crop.emoji}</span>
                   <div style="flex:1">
@@ -2925,7 +2989,7 @@ function renderVekster() {
             ${badge(c.status)}
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 12px;background:rgba(52,211,153,0.07);border-radius:10px;border:1px solid var(--border-accent)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 12px;background:var(--bg-card);border-radius:10px;border:1px solid var(--border)">
           <span style="font-size:20px">🌿</span>
           <div>
             <div style="font-size:22px;font-weight:300;color:var(--accent);line-height:1">${plantCount}</div>
@@ -3496,7 +3560,7 @@ function toggleFocusTask(id) {
 }
 
 function openFocusModal() {
-  const focused = tasks.filter(t => focusTaskIds.has(t.id) && !t.done);
+  const focused = tasks.filter(t => focusTaskIds.has(t.id));
   const modal = document.createElement('div');
   modal.id = 'focus-modal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
@@ -3505,7 +3569,7 @@ function openFocusModal() {
   modal.innerHTML = `
     <div style="background:var(--bg-modal);border:1px solid var(--border-accent);border-radius:20px;padding:24px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.8)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div style="font-size:16px;color:var(--accent-soft);font-weight:400">🎯 Fokusoppgaver</div>
+        <div style="font-size:16px;color:var(--accent-soft);font-weight:400">🎯 Fokus</div>
         <button onclick="document.getElementById('focus-modal').remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1">×</button>
       </div>
       ${focused.length === 0
@@ -3621,16 +3685,17 @@ function renderOppgaver() {
   const pColors = {høy:'#f87171',middels:'#fbbf24',lav:'#6ee7b7'};
   const pLabels = {høy:'Høy',middels:'Middels',lav:'Lav'};
   const MONTHS_SHORT = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des'];
-  const focusCount = tasks.filter(t => focusTaskIds.has(t.id) && !t.done).length;
+  const focusCount = tasks.filter(t => focusTaskIds.has(t.id)).length;
 
   document.getElementById('tab-oppgaver').innerHTML = `
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <button class="add-btn" style="margin-bottom:0;flex:1" onclick="document.getElementById('modal-task').style.display='flex'">+ Ny oppgave</button>
-      <button onclick="openFocusModal()" style="padding:13px 16px;border-radius:12px;border:1px solid var(--border);background:var(--bg-card);color:${focusCount>0?'#fbbf24':'var(--text-muted)'};cursor:pointer;font-size:14px;font-family:inherit;white-space:nowrap;flex-shrink:0" title="Fokusoppgaver">🎯${focusCount>0?` ${focusCount}`:''}</button>
+      <button onclick="openFocusModal()" style="padding:13px 16px;border-radius:12px;border:1px solid var(--border);background:var(--bg-card);color:${focusCount>0?'#fbbf24':'var(--text-muted)'};cursor:pointer;font-size:14px;font-family:inherit;white-space:nowrap;flex-shrink:0" title="Fokus">🎯${focusCount>0?` ${focusCount}`:''}</button>
+      <button onclick="openHistoryModal()" style="padding:13px 16px;border-radius:12px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:14px;font-family:inherit;white-space:nowrap;flex-shrink:0" title="Historikk">📋</button>
     </div>
     ${priorities.map(p => {
       const pts = getOrderedTasks(p);
-      const autoPts = tasks.filter(t => t.priority === p && String(t.id).startsWith('crop-'));
+      const autoPts = tasks.filter(t => t.priority === p && String(t.id).startsWith('crop-') && !t.done);
       if (!pts.length && !autoPts.length) return '';
       return `<div class="task-section">
         <div class="task-drop-zone" data-priority="${p}" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:4px 2px;border-radius:6px;transition:background 0.15s">
@@ -3675,9 +3740,76 @@ function renderOppgaver() {
 
 function toggleTask(id) {
   if (typeof id === 'string' && id.startsWith('crop-')) return;
-  snapshot(); tasks = tasks.map(t => t.id===id ? {...t, done:!t.done} : t); render();
+  snapshot();
+  const idStr = String(id).replace(/'/g, "");
+  tasks = tasks.map(t => String(t.id) === idStr ? {...t, done:!t.done} : t);
+  render();
 }
-function deleteTask(id) { snapshot(); tasks = tasks.filter(t => t.id!==id); render(); }
+
+function deleteTask(id) {
+  snapshot();
+  const idStr = String(id).replace(/'/g, "");
+  const task = tasks.find(t => String(t.id) === idStr);
+  if (task) {
+    // Move to history on delete
+    const histTask = {...task, completedAt: new Date().toISOString()};
+    taskHistory.unshift(histTask);
+    if (taskHistory.length > 200) taskHistory.pop();
+    try { localStorage.setItem('mh_task_history', JSON.stringify(taskHistory)); } catch(e) {}
+  }
+  tasks = tasks.filter(t => String(t.id) !== idStr);
+  render();
+}
+
+function deleteTaskFromHistory(idx) {
+  taskHistory.splice(idx, 1);
+  try { localStorage.setItem('mh_task_history', JSON.stringify(taskHistory)); } catch(e) {}
+  openHistoryModal();
+}
+
+function openHistoryModal() {
+  document.getElementById('history-modal')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'history-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  // Sort newest first (already unshifted, but re-sort to be safe)
+  const sorted = [...taskHistory].sort((a,b) => new Date(b.completedAt||0) - new Date(a.completedAt||0));
+  const pColors = {høy:'#f87171',middels:'#fbbf24',lav:'#6ee7b7'};
+
+  const rows = sorted.length
+    ? sorted.map((t, i) => {
+        const realIdx = taskHistory.indexOf(t);
+        const dateStr = t.completedAt
+          ? new Date(t.completedAt).toLocaleDateString('no-NO', {day:'numeric',month:'short',year:'numeric'})
+          : '–';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="width:10px;height:10px;border-radius:50%;background:${pColors[t.priority]||'#6b7280'};flex-shrink:0"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;color:var(--text-head);word-break:break-word">${t.text}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Fullført ${dateStr}</div>
+          </div>
+          <button onclick="deleteTaskFromHistory(${realIdx})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0">×</button>
+        </div>`;
+      }).join('')
+    : '<div style="color:var(--text-muted);padding:30px 0;text-align:center;font-size:13px">Ingen historikk ennå.<br>Fullførte oppgaver vises her.</div>';
+
+  modal.innerHTML = `
+    <div style="background:var(--bg-modal);border:1px solid var(--border-accent);border-radius:20px;
+      padding:24px;max-width:420px;width:100%;max-height:80vh;
+      display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.8)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-shrink:0">
+        <div style="font-size:16px;color:var(--accent-soft);font-weight:400">Historikk</div>
+        <button onclick="document.getElementById('history-modal').remove()"
+          style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:20px;line-height:1">×</button>
+      </div>
+      <div style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch">${rows}</div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target===modal) modal.remove(); });
+}
+// deleteTask defined above
 
 function startEditTaskText(id, el) {
   if (el.querySelector('input')) return; // already editing
@@ -4419,12 +4551,17 @@ function saveToLocal() {
     };
     localStorage.setItem('mh_data', JSON.stringify(data));
     localStorage.setItem('mh_task_order', JSON.stringify(taskOrder));
+    if (taskHistory.length) localStorage.setItem('mh_task_history', JSON.stringify(taskHistory));
     localStorage.setItem('mh_focus_tasks', JSON.stringify([...focusTaskIds]));
     if (gardenMap) localStorage.setItem('mh_garden_map', JSON.stringify(gardenMap));
   } catch(e) { console.warn('localStorage save failed:', e); }
 }
 
 function loadFromLocal() {
+  try {
+    const hr = localStorage.getItem('mh_task_history');
+    if (hr) taskHistory = JSON.parse(hr);
+  } catch(e) {}
   try {
     const raw = localStorage.getItem('mh_data');
     if (!raw) return false;
@@ -4434,6 +4571,7 @@ function loadFromLocal() {
     if (data.bedSizes) bedSizes = data.bedSizes;
     if (data.bedIDs && data.bedIDs.length) BED_IDS = data.bedIDs;
     if (data.gardenMap) gardenMap = data.gardenMap;
+    if (data.taskHistory) taskHistory = data.taskHistory;
     return true;
   } catch(e) { return false; }
 }
@@ -4820,6 +4958,7 @@ async function syncLoadOnStart() {
       if (remote.bedSizes) bedSizes = remote.bedSizes;
       if (remote.bedIDs && remote.bedIDs.length) BED_IDS = remote.bedIDs;
       if (remote.gardenMap) gardenMap = remote.gardenMap;
+      if (remote.taskHistory) taskHistory = remote.taskHistory;
       saveToLocal();
       clearTimeout(syncTimer); syncTimer = null;
       render();
@@ -4851,6 +4990,7 @@ async function syncLoad(silent = false) {
     if (data.bedSizes) bedSizes = data.bedSizes;
     if (data.bedIDs && data.bedIDs.length) BED_IDS = data.bedIDs;
     if (data.gardenMap) gardenMap = data.gardenMap;
+    if (data.taskHistory) taskHistory = data.taskHistory;
     saveToLocal();
     clearTimeout(syncTimer); syncTimer = null;
     render();
@@ -4871,6 +5011,7 @@ async function syncSave() {
     bedSizes,
     bedIDs: BED_IDS,
     gardenMap: gardenMap || null,
+    taskHistory: taskHistory || [],
     saved: new Date().toISOString()
   };
   const payloadStr = JSON.stringify(payload);
